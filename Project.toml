@@ -1,0 +1,7 @@
+name = "SeqFold"
+uuid = "b3b2a78d-ef5a-44e0-bc1e-af93888afa44"
+authors = ["phlaster <phlaster@users.noreply.github.com>"]
+version = "0.0.1"
+
+[compat]
+julia = "1.10"
