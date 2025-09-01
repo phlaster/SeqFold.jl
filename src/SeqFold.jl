@@ -14,7 +14,7 @@ end
 Nucleic acid folding library
 
 # Exports:
-[`tm`](@ref), [`tm_cache`](@ref), [`gc_cache`](@ref)
+[`tm`](@ref), [`tm_cache`](@ref), [`gc_cache`](@ref), [`MeltingConditions`](@ref),
 [`fold`](@ref), [`dg`](@ref), [`dg_cache`](@ref), [`dot_bracket`](@ref)
 
 # Documentation:
@@ -24,8 +24,9 @@ $(isnothing(get(ENV, "CI", nothing)) ? ("\n" * "# Local path:\n" * pathof(SeqFol
 """
 SeqFold
 
-export tm, tm_cache, gc_cache
+export tm, tm_cache, gc_cache, MeltingConditions
 export fold, dg, dg_cache, dot_bracket
+public complement
 
 using Printf
 
