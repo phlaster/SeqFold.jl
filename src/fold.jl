@@ -18,7 +18,7 @@ Keyword Args:
 Returns:
     A vector of structures. Stacks, bulges, hairpins, etc.
 """
-function fold(seq::AbstractString; temp::Real = 37.0)::Vector{Struct}    
+function fold(seq::AbstractString; temp::Real = 37.0)::Vector{Structure}    
     v_cache, w_cache = _cache(seq, temp)
     n = length(seq)
     return _traceback(1, n, v_cache, w_cache)
@@ -67,7 +67,7 @@ Args:
 Returns:
     Dot bracket notation of the secondary structure
 """
-function dot_bracket(seq::AbstractString, structs::Vector{Struct})
+function dot_bracket(seq::AbstractString, structs::Vector{Structure})
     n = length(seq)
     result = fill('.', n)
     for s in structs
@@ -122,14 +122,14 @@ Args:
     i: The start index.
     j: The end index (1-based, inclusive).
     temp: The temperature in Kelvin.
-    v_cache: Free energy cache for if i and j base pair. Stores `Struct`.
-    w_cache: Free energy cache for lowest energy structure from i to j. Stores `Struct`.
+    v_cache: Free energy cache for if i and j base pair. Stores `Structure`.
+    w_cache: Free energy cache for lowest energy structure from i to j. Stores `Structure`.
     emap: Energy map for DNA/RNA (`Energies` struct).
 
 Returns:
-    Struct: The minimum free energy structure for the subsequence from i to j.
+    Structure: The minimum free energy structure for the subsequence from i to j.
 """
-function _w!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
+function _w!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
 
     # global COUNTER
     # COUNTER += 1
@@ -171,14 +171,14 @@ Args:
     i: The start index.
     j: The end index (1-based, inclusive).
     temp: The temperature in Kelvin.
-    v_cache: Free energy cache for if i and j base pair. Stores `Struct`.
-    w_cache: Free energy cache for lowest energy structure from i to j. Stores `Struct`.
+    v_cache: Free energy cache for if i and j base pair. Stores `Structure`.
+    w_cache: Free energy cache for lowest energy structure from i to j. Stores `Structure`.
     emap: Energy map for DNA/RNA (`Energies` struct).
 
 Returns:
-    Struct: The minimum free energy structure possible between i and j.
+    Structure: The minimum free energy structure possible between i and j.
 """
-function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
+function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
 
     # global COUNTER
     # COUNTER += 1
@@ -209,14 +209,14 @@ function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
     isolated_inner = emap.COMPLEMENT[seq[i + 1]] != seq[j - 1]
 
     if isolated_outer && isolated_inner
-        v_cache[i][j] = Struct(1600.0) # kcal/mol
+        v_cache[i][j] = Structure(1600.0) # kcal/mol
         return v_cache[i][j]
     end
 
     # --- Energy E1: Hairpin Loop ---
     pair_hairpin = _pair(seq, i, i + 1, j, j - 1)
     e1_energy = _hairpin(seq, i, j, temp, emap)
-    e1 = Struct(e1_energy, "HAIRPIN:" * pair_hairpin)
+    e1 = Structure(e1_energy, "HAIRPIN:" * pair_hairpin)
     
     # Special case: Small hairpin (4 bases in loop, so j-i=5)
     if j - i == 4
@@ -228,7 +228,7 @@ function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
     # --- Energy E2: Stacking/Bulge/Interior Loop ---
     # Stacking region or bulge or interior loop; Figure 2A(2)
     # j-i=d>4; various pairs i',j' for j'-i'<d
-    e2 = Struct(Inf)
+    e2 = Structure(Inf)
     for i1 in (i + 1):(j - 3)
         for j1 in (i1 + 4):(j - 1)
             # i1 and j1 must match (base pair)
@@ -285,7 +285,7 @@ function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
 
             e2_test_energy += _v!(seq, i1, j1, temp, v_cache, w_cache, emap).e
             if e2_test_energy > -Inf && e2_test_energy < e2.e
-                e2 = Struct(e2_test_energy, e2_test_type, [(i1, j1)])
+                e2 = Structure(e2_test_energy, e2_test_type, [(i1, j1)])
             end
         end
     end
@@ -686,15 +686,15 @@ Args:
     k: The mid-point in the search.
     j: The right ending index.
     temp: Folding temp in Kelvin.
-    v_cache: Cache of energies where V(i,j) bond. Stores `Struct`.
-    w_cache: Cache of min energy of substructures between W(i,j). Stores `Struct`.
+    v_cache: Cache of energies where V(i,j) bond. Stores `Structure`.
+    w_cache: Cache of min energy of substructures between W(i,j). Stores `Structure`.
     emap: Map to DNA/RNA energies (`Energies` struct).
     helix: Whether this multibranch is enclosed by a helix (V(i,j) forms a base pair).
 
 Returns:
-    Struct: A multi-branch structure.
+    Structure: A multi-branch structure.
 """
-function _multi_branch(seq, i, k, j, temp, v_cache, w_cache, emap, helix=false)::Struct
+function _multi_branch(seq, i, k, j, temp, v_cache, w_cache, emap, helix=false)::Structure
 
     # global COUNTER
     # COUNTER += 1
@@ -713,7 +713,7 @@ function _multi_branch(seq, i, k, j, temp, v_cache, w_cache, emap, helix=false):
 
     branches = Tuple{Int, Int}[]
 
-    function __add_branch!(s::Struct)
+    function __add_branch!(s::Structure)
         if !Bool(s) || isempty(s.ij)
             return
         end
@@ -817,7 +817,7 @@ function _multi_branch(seq, i, k, j, temp, v_cache, w_cache, emap, helix=false):
         pop!(branches)
     end
 
-    return Struct(e, "BIFURCATION:" * string(unpaired) * "n/" * string(branches_count) * "h", branches)
+    return Structure(e, "BIFURCATION:" * string(unpaired) * "n/" * string(branches_count) * "h", branches)
 end
 
 """
@@ -832,13 +832,13 @@ Repeat.
 Args:
     i: The leftmost index to start searching in.
     j: The rightmost index to start searching in.
-    v_cache: Cache of energies where i and j bond. Stores `Struct`.
-    w_cache: Cache of energies/sub-structures between or with i and j. Stores `Struct`.
+    v_cache: Cache of energies where i and j bond. Stores `Structure`.
+    w_cache: Cache of energies/sub-structures between or with i and j. Stores `Structure`.
 
 Returns:
-    Vector{Struct}: A list of Structs in the final secondary structure.
+    Vector{Structure}: A list of Structs in the final secondary structure.
 """
-function _traceback( i, j, v_cache, w_cache)::Vector{Struct}
+function _traceback( i, j, v_cache, w_cache)::Vector{Structure}
 
     # global COUNTER
     # COUNTER += 1
@@ -854,7 +854,7 @@ function _traceback( i, j, v_cache, w_cache)::Vector{Struct}
         end
     end
 
-    structs::Vector{Struct} = Struct[]
+    structs::Vector{Structure} = Structure[]
     while true
         s_v = v_cache[i][j]
 
@@ -869,7 +869,7 @@ function _traceback( i, j, v_cache, w_cache)::Vector{Struct}
         if length(s_v.ij) > 1
             e_sum = 0.0
             structs = _trackback_energy(structs)
-            branches = Struct[]
+            branches = Structure[]
             for (i1, j1) in s_v.ij
                 tb = _traceback(i1, j1, v_cache, w_cache)
                 if !isempty(tb) && !isempty(tb[1].ij)
@@ -880,7 +880,7 @@ function _traceback( i, j, v_cache, w_cache)::Vector{Struct}
             end
             last_struct = last(structs)
             corrected_energy = round(last_struct.e - e_sum, digits=1)
-            structs[end] = Struct(corrected_energy, last_struct.desc, collect(last_struct.ij))
+            structs[end] = Structure(corrected_energy, last_struct.desc, collect(last_struct.ij))
             return vcat(structs, branches)
         end
 
@@ -902,16 +902,16 @@ Args:
     structs: The structures for whom energy is being calculated.
 
 Returns:
-    Vector{Struct}: Structures in the folded DNA with energy.
+    Vector{Structure}: Structures in the folded DNA with energy.
 """
-function _trackback_energy(structs)::Vector{Struct}
+function _trackback_energy(structs)::Vector{Structure}
     n = length(structs)
-    structs_e = Vector{Struct}(undef, n)
+    structs_e = Vector{Structure}(undef, n)
 
     @inbounds for (i, str) in enumerate(structs)
         e_next = i == n ? 0.0 : structs[i+1].e
         e_corrected = round(str.e - e_next, digits=1)
-        corrected_struct = Struct(e_corrected, str.desc, copy(str.ij))
+        corrected_struct = Structure(e_corrected, str.desc, copy(str.ij))
         structs_e[i] = corrected_struct
     end
 

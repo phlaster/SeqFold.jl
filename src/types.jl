@@ -43,30 +43,30 @@ mutable struct Energies
     end
 end
 
-mutable struct Struct
+mutable struct Structure
     e::Float64
     desc::String
     ij::Vector{Tuple{Int, Int}}
 
-    function Struct(e::Float64=-Inf, desc::String="", ij::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[])
+    function Structure(e::Float64=-Inf, desc::String="", ij::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[])
         return new(e, desc, ij)
     end
 end
 
 
-Base.:(==)(a::Struct, b::Struct) = a.e == b.e && a.ij == b.ij
-Base.Bool(st::Struct) = !isinf(st.e) && st.e != -Inf
-with_ij(st::Struct, ij::Vector{Tuple{Int, Int}}) = Struct(st.e, st.desc, ij)
+Base.:(==)(a::Structure, b::Structure) = a.e == b.e && a.ij == b.ij
+Base.Bool(st::Structure) = !isinf(st.e) && st.e != -Inf
+with_ij(st::Structure, ij::Vector{Tuple{Int, Int}}) = Structure(st.e, st.desc, ij)
 
-function Base.show(io::IO, st::Struct)
+function Base.show(io::IO, st::Structure)
     i, j = isempty(st.ij) ? (0, 0) : first(st.ij)
     @printf(io, "%4d %4d %6.1f  %-15s", i, j, st.e, st.desc)
 end
 
 
-const STRUCT_DEFAULT = Struct(-Inf)
-const STRUCT_NULL = Struct(Inf)
-const Structs = Vector{Vector{Struct}}
+const STRUCT_DEFAULT = Structure(-Inf)
+const STRUCT_NULL = Structure(Inf)
+const Structs = Vector{Vector{Structure}}
 
 
 """
