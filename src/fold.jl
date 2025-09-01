@@ -53,7 +53,7 @@ Returns:
     Cache: A Vector{Vector} where each [i][j] pairing corresponds to the
         minimum free energy between i and j
 """
-function dg_cache(seq::AbstractString, temp::Float64 = 37.0)::Cache
+function dg_cache(seq::AbstractString, temp::Real = 37.0)::Cache
     _, w_cache = _cache(seq, temp)
     cache::Cache = [[s.e for s in row] for row in w_cache]
     return cache
@@ -94,15 +94,7 @@ Keyword Args:
 Returns:
     `(w_cache, v_cache)` tuple
 """
-function _cache(seq::AbstractString, temp::Float64=37.0)
-    seq_str = uppercase(seq)
-    temp_K = temp + 273.15  # Convert Celsius to Kelvin
-
-    unique_bases = Set(seq_str)
-    is_dna = true
-
-    if 'U' in unique_bases && 'T' in unique_bases
-        throw(ArgumentError("Both T and U found in sequence. Provide DNA or RNA, not both."))
+function _cache(seq, temp)
     end
 
     if all(b in "AUCG" for b in unique_bases)
@@ -140,15 +132,7 @@ Args:
 Returns:
     Struct: The minimum free energy structure for the subsequence from i to j.
 """
-function _w!(
-    seq::AbstractString,
-    i::Int,
-    j::Int,
-    temp::Float64,
-    v_cache::Structs,
-    w_cache::Structs,
-    emap::Energies
-)::Struct
+function _w!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
 
     # global COUNTER
     # COUNTER += 1
@@ -197,15 +181,7 @@ Args:
 Returns:
     Struct: The minimum free energy structure possible between i and j.
 """
-function _v!(
-    seq::AbstractString,
-    i::Int,
-    j::Int,
-    temp::Float64,
-    v_cache::Structs,
-    w_cache::Structs,
-    emap::Energies
-)::Struct
+function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Struct
 
     # global COUNTER
     # COUNTER += 1
@@ -343,7 +319,7 @@ Args:
 Returns:
     string representation of the pair
 """
-function _pair(s::AbstractString, i::Int, i1::Int, j::Int, j1::Int)::String
+function _pair(s, i, i1, j, j1)::String
     # global COUNTER
     # COUNTER += 1
     # println("$COUNTER: _pair ($(i-1), $(i1-1), $(j-1), $(j1-1))")
@@ -386,7 +362,7 @@ Args:
 Returns:
     The free energy increment in kcal / (mol x K)
 """
-function _d_g(d_h::Float64, d_s::Float64, temp_K::Real)
+function _d_g(d_h, d_s, temp_K)
     # global COUNTER
     # COUNTER += 1
     # println("$COUNTER: _d_g ($d_h, $d_s)")
@@ -409,7 +385,7 @@ Args:
 Returns:
     Free energy for a structure of length `query_len`
 """
-function _j_s(query_len::Int, known_len::Int, d_g_x::Float64, temp_K::Real)::Float64
+function _j_s(query_len, known_len, d_g_x, temp_K)::Float64
     # global COUNTER
     # COUNTER += 1
     # println("$COUNTER: _j_s ($query_len, $known_len, $d_g_x)")
@@ -440,15 +416,7 @@ Args:
 Returns:
     Float64: The free energy of the NN pairing.
 """
-function _stack(
-    seq::AbstractString,
-    i::Int,
-    i1::Int,
-    j::Int,
-    j1::Int,
-    temp::Float64,
-    emap::Energies
-)::Float64
+function _stack(seq, i, i1, j, j1, temp, emap)::Float64
     
     # global COUNTER
     # COUNTER += 1
@@ -515,13 +483,7 @@ Args:
 Returns:
     Float64: The free energy increment from the hairpin structure.
 """
-function _hairpin(
-    seq::AbstractString,
-    i::Int,
-    j::Int,
-    temp::Float64,
-    emap::Energies
-)::Float64
+function _hairpin(seq, i, j, temp, emap)::Float64
 
     # global COUNTER
     # COUNTER += 1
@@ -592,15 +554,7 @@ Args:
 Returns:
     Float64: The increment in free energy from the bulge.
 """
-function _bulge(
-    seq::AbstractString,
-    i::Int,
-    i1::Int,
-    j::Int,
-    j1::Int,
-    temp::Float64,
-    emap::Energies
-)::Float64
+function _bulge(seq, i, i1, j, j1, temp, emap)::Float64
 
     # global COUNTER
     # COUNTER += 1
@@ -664,15 +618,7 @@ Args:
 Returns:
     Float64: The free energy associated with the internal loop.
 """
-function _internal_loop(
-    seq::AbstractString,
-    i::Int,
-    i1::Int,
-    j::Int,
-    j1::Int,
-    temp::Float64,
-    emap::Energies
-)::Float64
+function _internal_loop(seq, i, i1, j, j1, temp, emap)::Float64
     
     # global COUNTER
     # COUNTER += 1
@@ -751,17 +697,7 @@ Args:
 Returns:
     Struct: A multi-branch structure.
 """
-function _multi_branch(
-    seq::AbstractString,
-    i::Int,
-    k::Int,
-    j::Int,
-    temp::Float64,
-    v_cache::Structs,
-    w_cache::Structs,
-    emap::Energies,
-    helix::Bool = false
-)::Struct
+function _multi_branch(seq, i, k, j, temp, v_cache, w_cache, emap, helix=false)::Struct
 
     # global COUNTER
     # COUNTER += 1
@@ -905,12 +841,7 @@ Args:
 Returns:
     Vector{Struct}: A list of Structs in the final secondary structure.
 """
-function _traceback(
-    i::Int,
-    j::Int,
-    v_cache::Structs,
-    w_cache::Structs
-)::Vector{Struct}
+function _traceback( i, j, v_cache, w_cache)::Vector{Struct}
 
     # global COUNTER
     # COUNTER += 1
@@ -976,7 +907,7 @@ Args:
 Returns:
     Vector{Struct}: Structures in the folded DNA with energy.
 """
-function _trackback_energy(structs::Vector{Struct})::Vector{Struct}
+function _trackback_energy(structs)::Vector{Struct}
     n = length(structs)
     structs_e = Vector{Struct}(undef, n)
 
