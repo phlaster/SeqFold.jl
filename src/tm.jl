@@ -312,36 +312,6 @@ function tm(seq::AbstractString; conditions=:pcr, kwargs...)
     tm(seq, complement(seq); conditions=conditions, kwargs...)
 end
 
-function _parse_input(s1::AbstractString, s2::AbstractString)
-    seq1, n1, gc_count1 = _parse_input(s1)
-    seq2, n2, _ = _parse_input(s2)
-
-    if n1 != n2
-        throw(DimensionMismatch("Length mismatch between sequences: $n1 vs $n2"))
-    end
-
-    return seq1, seq2, n1, gc_count1
-end
-
-function _parse_input(seq::AbstractString)
-    n = length(seq)
-    if n < 2
-        throw(ArgumentError("Sequences lengths have to be at least 2bp"))
-    end
-    
-    seq = uppercase(seq)
-    gc_count = 0
-
-    for c in seq
-        if !in(c, "ACGT")
-            throw(ArgumentError("Incorrect character '$c' in DNA sequence"))
-        end
-        gc_count += Int(c == 'G' || c == 'C')
-    end
-
-    return seq, n, gc_count
-end
-
 """
     tm_cache(seq1, seq2; conditions=:pcr, kwargs...) -> Matrix{Float64}
     tm_cache(seq; conditions=:pcr, kwargs...) -> Matrix{Float64}
@@ -602,35 +572,4 @@ function _calc_tm(
     est = inv(inv_est + corr) - 273.15
     
     return round(max(est, -273.2), digits=1)
-end
-
-_comp_dna(b::UInt8)::UInt8 =
-    b == UInt8('A') ? UInt8('T') :
-    b == UInt8('a') ? UInt8('T') :
-    b == UInt8('T') ? UInt8('A') :
-    b == UInt8('t') ? UInt8('A') :
-    b == UInt8('C') ? UInt8('G') :
-    b == UInt8('c') ? UInt8('G') :
-    b == UInt8('G') ? UInt8('C') :
-    b == UInt8('g') ? UInt8('C') :
-    UInt8('.')
-
-const DNA_COMP_TABLE = collect(ntuple(i->_comp_dna(UInt8(i-1)), Val(256)))
-
-@inline function _comp_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8})
-    n = length(seq)
-    @inbounds @simd for i in 1:n
-        out[i] = DNA_COMP_TABLE[ seq[i] + 1 ]
-    end
-    return out
-end
-
-function complement(seq::AbstractVector{UInt8})
-    out = Vector{UInt8}(undef, length(seq))
-    return _comp_bytes!(out, seq)
-end
-
-function complement(seq::AbstractString)
-    out_bytes = complement(codeunits(seq))
-    return String(out_bytes)
 end

@@ -30,6 +30,7 @@ public complement
 
 using Printf
 
+include("utils.jl")
 include("types.jl")
 include("rna.jl")
 include("dna.jl")

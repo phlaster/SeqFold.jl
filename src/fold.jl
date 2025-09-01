@@ -95,22 +95,19 @@ Returns:
     `(w_cache, v_cache)` tuple
 """
 function _cache(seq, temp)
+    if !(-50 ≤ temp ≤ 150)
+        throw(ArgumentError("Temperature in °C is outside reasonable range"))
     end
+    temp_K = temp + 273.15
 
-    if all(b in "AUCG" for b in unique_bases)
-        is_dna = false
-    elseif any(b ∉ "ATGC" for b in unique_bases)
-        unknown_bases = filter(b -> b ∉ "ATUGC", unique_bases)
-        throw(ArgumentError("Unknown base(s): $unknown_bases. Only DNA/RNA foldable."))
-    end
+    seq, n, _, is_dna = _parse_input(seq, is_dna=nothing)
 
     emap = is_dna ? DNA_ENERGIES : RNA_ENERGIES
 
-    n = length(seq_str)
     v_cache = [fill(STRUCT_DEFAULT, n) for _ in 1:n]
     w_cache = [fill(STRUCT_DEFAULT, n) for _ in 1:n]
 
-    _w!(seq_str, 1, n, temp_K, v_cache, w_cache, emap)
+    _w!(seq, 1, n, temp_K, v_cache, w_cache, emap)
 
     return v_cache, w_cache
 end
