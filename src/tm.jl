@@ -30,13 +30,13 @@ julia> tm("GGGGGG", conditions=:pcr)
 15.5
 
 julia> tm("GGGGGG", Mg=10)
-23.1
+23.0
 
 julia> tm("GGGGGG", conditions=:std)
-2.7
+2.6
 
 julia> tm("GGGGGG", conditions=:std, Na=100)
-5.2
+5.1
 
 julia> tm("GGGGGG", conditions=MeltingConditions(150, 150, 20, 0, 0, 10, 0))
 16.8
@@ -113,21 +113,21 @@ invalid ranges, and single-nucleotide subsequences also have `Inf` as they don't
 
 # Examples
 ```jldoctest
-julia> tm_cache("ATCC")
+julia> SeqFold.tm_cache("ATCC")
 4×4 Matrix{Float64}:
  Inf  -212.6   -95.3   -48.6
  Inf    Inf   -161.6   -82.7
  Inf    Inf     Inf   -135.5
  Inf    Inf     Inf     Inf
 
-julia> tm_cache("AAGC", "TTCG")
+julia> SeqFold.tm_cache("AAGC", "TTCG")
 4×4 Matrix{Float64}:
  Inf  -204.8   -94.6   -40.3
  Inf    Inf   -166.7   -72.9
  Inf    Inf     Inf   -116.7
  Inf    Inf     Inf     Inf
 
-julia> tm_cache("AAGC", "TTCG"; conditions=:std)
+julia> SeqFold.tm_cache("AAGC", "TTCG"; conditions=:std)
 4×4 Matrix{Float64}:
  Inf  -213.1  -109.3   -55.6
  Inf    Inf   -177.9   -88.1
@@ -238,27 +238,27 @@ rounded to one decimal place. Elements where `j < i` contain `Inf` as they repre
 
 # Examples
 ```jldoctest
-julia> gc_cache("GGAA")
+julia> SeqFold.gc_cache("GGAA")
 4×4 Matrix{Float64}:
   1.0   1.0   0.666667  0.5
  Inf    1.0   0.5       0.333333
  Inf   Inf    0.0       0.0
  Inf   Inf   Inf        0.0
 
-julia> gc_cache("GAAA")
+julia> SeqFold.gc_cache("GAAA")
 4×4 Matrix{Float64}:
   1.0   0.5   0.333333  0.25
  Inf    0.0   0.0       0.0
  Inf   Inf    0.0       0.0
  Inf   Inf   Inf        0.0
 
-julia> gc_cache("ATA")
+julia> SeqFold.gc_cache("ATA")
 3×3 Matrix{Float64}:
   0.0   0.0  0.0
  Inf    0.0  0.0
  Inf   Inf   0.0
 
-julia> gc_cache("GGTT") == gc_cache("CCAA")
+julia> SeqFold.gc_cache("GGTT") == SeqFold.gc_cache("CCAA")
 true
 ```
 

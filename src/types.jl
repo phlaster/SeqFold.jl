@@ -173,7 +173,7 @@ ERROR: ArgumentError: DNA concentration is too low!
 [...]
 
 julia> MeltingConditions(seq1_conc=10,seq2_conc=10,Na=0,K=0,Tris=0,Mg=0,dNTPs=0)
-ERROR: ArgumentError: No cations for salt correction (Mg=0.0, Na=0, K=0, Tris=0)
+ERROR: ArgumentError: No cations for salt correction (Mg=0, Na=0, K=0, Tris=0)
 [...]
 ```
 """

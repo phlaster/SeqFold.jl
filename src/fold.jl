@@ -145,11 +145,11 @@ julia> structs2 = fold(seq2)
     8   35   -1.5  STACK:CA/GT    
     9   34   -2.0  STACK:AGC/TTG  
    11   32   -1.5  STACK:CA/GT    
-   12   31    2.8  INTERIOR_LOOP:3/1
+   12   31    2.8  INTERIOR_LOOP:4/2
    16   29   -1.3  STACK:CT/GA    
    17   28   -0.1  STACK:TGA/AGT  
    19   26   -1.0  STACK:AA/TT    
-   20   25    3.5  HAIRPIN:AC/TG  
+   20   25    3.5  HAIRPIN:AC/TG   
 
 julia> dbn = dot_bracket(seq2, structs2)
 "..((.((((.((...((.((....)).)).)).)))).)).........."
