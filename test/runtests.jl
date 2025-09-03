@@ -26,11 +26,11 @@ function verify_tm_cache(seq)
     n = length(seq)
     
     for conds in [_randconds() for _ in 1:10]
-        cache = tm_cache(seq, seq2, conditions=conds)
+        cache = SeqFold.tm_cache(seq, seq2, conditions=conds)
         for _ in 1:10
             i = rand(1:n-2)
             j = min(i+rand(1:n÷2), n)
-            direct_tm = tm(SubString(seq, i:j), SubString(seq2, i:j), conditions=conds)
+            direct_tm = tm(seq[i:j], seq2[i:j], conditions=conds)
             cache_tm = cache[i, j]
             @test isapprox(direct_tm, cache_tm, atol=0.1)
         end
@@ -147,7 +147,7 @@ end
             for _ in 1:100
                 n = rand(5:55)
                 seq = _randna(n)
-                M = gc_cache(seq)
+                M = SeqFold.gc_cache(seq)
                 @test size(M) == (n, n)
                 @test count(isinf, M) == (n^2 - n) ÷ 2
 
@@ -166,10 +166,10 @@ end
 
     @testset "tm_cache" begin
         @testset "Throws" begin
-            @test_throws MethodError tm_cache()
-            @test_throws ArgumentError tm_cache("BAD NUCLEOTIDES")
-            @test_throws ArgumentError tm_cache("A")
-            @test_throws DimensionMismatch tm_cache("ACT", "ACGGT")
+            @test_throws MethodError SeqFold.tm_cache()
+            @test_throws ArgumentError SeqFold.tm_cache("BAD NUCLEOTIDES")
+            @test_throws ArgumentError SeqFold.tm_cache("A")
+            @test_throws DimensionMismatch SeqFold.tm_cache("ACT", "ACGGT")
         end
 
         @testset "Verification" begin
@@ -196,7 +196,7 @@ end
 
     @testset "dg_cache" begin
         seq = "ATGGATTTAGATAGAT"
-        cache = dg_cache(seq, 37.0)
+        cache = SeqFold.dg_cache(seq, 37.0)
         seq_dg = dg(seq)
         
         @test isapprox(seq_dg, cache[1][length(seq)], atol=1.0)
