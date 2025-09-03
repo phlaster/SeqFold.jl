@@ -1,22 +1,45 @@
-    """Fold the DNA sequence and return the lowest free energy score.
+"""
+    fold(seq; temp = 37.0) -> Vector{Structure}
 
-Based on the approach described in:
-Zuker and Stiegler, 1981
+Predict the minimum free energy secondary structure of a nucleic acid sequence using a
+dynamic programming algorithm based on the Zuker and Stiegler (1981) approach.
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC326673/pdf/nar00394-0137.pdf
 
-If the sequence is 50 or more bp long, "isolated" matching bp
-are ignored in V(i,j). This is based on an approach described in:
-Mathews, Sabina, Zuker and Turner, 1999
-https://www.ncbi.nlm.nih.gov/pubmed/10329189
+Implements the core of the nucleic acid folding algorithm. It calculates the
+thermodynamically most stable secondary structure for a given single-stranded
+DNA or RNA sequence. The result is a vector of  [`Structure`](@ref) objects, each element representing a
+distinct secondary structure (e.g., hairpin loop, stacked pair, bulge, interior loop, multibranch loop)
+that contributes to the overall folded structure.
 
-Args:
-    seq: The sequence to fold
+An optimization is applied where "isolated" base pairs (those not adjacent to other base pairs)
+are penalized with a high energy cost (1600.0 kcal/mol) to speed up computation. A base pair (i,j)
+is considered isolated if neither the pair (i-1, j+1) nor the pair (i+1, j-1) are complementary
+according to the sequence's complementarity rules. This optimization is applied regardless of
+sequence length.
 
-Keyword Args:
-    temp: The temperature the fold takes place in, in Celcius
+# Arguments
+- `seq::AbstractString`: DNA/RNA sequence
+- `temp::Real`: The temperature (°C) at which the folding is performed (default: `37.0`).
 
-Returns:
-    A vector of structures. Stacks, bulges, hairpins, etc.
+
+# Examples
+```jldoctest
+julia> fold("CCAACCGGTTGG")
+4-element Vector{SeqFold.Structure}:
+    1   12   -1.8  STACK:CC/GG    
+    2   11   -1.5  STACK:CA/GT    
+    3   10   -1.0  STACK:AA/TT    
+    4    9    3.5  HAIRPIN:AC/TG  
+
+julia> fold("CCAACCGGTTGG", temp=70)
+2-element Vector{SeqFold.Structure}:
+    5   12   -1.6  STACK_DE:CC/GG 
+    6   11    3.2  HAIRPIN:CG/GT  
+```
+
+# See also
+[`dg`](@ref), [`dg_cache`](@ref), [`dot_bracket`](@ref), [`Structure`](@ref),
+[`SeqFold.DNA_ENERGIES`](@ref), [`SeqFold.RNA_ENERGIES`](@ref)
 """
 function fold(seq::AbstractString; temp::Real = 37.0)::Vector{Structure}    
     v_cache, w_cache = _cache(seq, temp)
@@ -24,20 +47,55 @@ function fold(seq::AbstractString; temp::Real = 37.0)::Vector{Structure}
     return _traceback(1, n, v_cache, w_cache)
 end
 
-"""Fold the sequence and return just the delta G of the structure
+"""
+    dg(seq; temp = 37.0) -> Float64
+    dg(structures) -> Float64
 
-Args:
-    seq: The sequence to fold
+Compute the minimum free energy (ΔG, kcal/mol⁻¹) of the secondary structure
+predicted for a single-stranded nucleic acid sequence at a specified temperature.
 
-Keyword Args:
-    temp: The temperature to fold at
+The function is a thin wrapper around the more general `fold` routine, which
+generates all energetically feasible secondary structures for the sequence.  
+Only the sum of the free-energy contributions of the returned structures is
+reported, rounded to two decimal places.
 
-Returns:
-    Minimum free energy of the folded sequence
+# Arguments
+- `seq::AbstractString` – the nucleotide sequence to be folded;
+- `temp::Real` – the temperature (°C) at which to perform the folding
+  (default: `37.0`);
+- `structures::Vector{Structure}` – result of [`fold`](@ref) function.
+
+# Returns
+- `ΔG::Float64` – the total free energy of the predicted structure,
+  rounded to two decimal places.
+
+# Examples
+```jldoctest
+julia> seq = "GCGCGCGCGCG";
+
+julia> dg(seq)
+-3.0
+
+julia> dg(seq, temp=20)
+-4.9
+
+julia> structures = fold(seq);
+
+julia> dg(structures)
+-3.0
+```
+
+# See also
+[`fold`](@ref), [`dg_cache`](@ref), [`SeqFold.DG_ENERGIES`](@ref)
 """
 function dg(seq::AbstractString; temp::Real = 37.0)::Float64
     structs = fold(seq, temp=temp)
     ΔG = sum(s.e for s in structs)
+    return round(ΔG, digits=2)
+end
+
+function dg(structures::Vector{SeqFold.Structure})::Float64
+    ΔG = sum(s.e for s in structures)
     return round(ΔG, digits=2)
 end
 
@@ -59,13 +117,58 @@ function dg_cache(seq::AbstractString, temp::Real = 37.0)::Cache
     return cache
 end
 
-"""Get the dot bracket notation for a secondary structure.
+"""
+    dot_bracket(seq, structs) -> String
 
-Args:
-    structs: A list of structs, usually from the fold function
+Generate the dot-bracket notation representation of a predicted nucleic acid secondary structure.
 
-Returns:
-    Dot bracket notation of the secondary structure
+# Arguments
+- `seq::AbstractString`: The original nucleotide sequence that was folded.
+- `structs::Vector{Structure}`: A vector of `Structure` objects describing the folded structure,
+  typically obtained from the [`fold`](@ref) function.
+
+# Examples
+```jldoctest
+julia> s = "AATTACGTTAC";
+
+julia> dot_bracket(s, fold(s))
+"((.....)).."
+
+julia> seq2 = "GGGAGGTCAGCAAACCTGAACCTGTTGAGATGTTGACGTCAGGAAACCCT";
+
+julia> structs2 = fold(seq2)
+12-element Vector{SeqFold.Structure}:
+    3   40   -1.3  STACK:GA/CT    
+    4   39   -1.4  STACK:AGG/TGC  
+    6   37   -1.5  STACK:GT/CA    
+    7   36   -1.3  STACK:TC/AG    
+    8   35   -1.5  STACK:CA/GT    
+    9   34   -2.0  STACK:AGC/TTG  
+   11   32   -1.5  STACK:CA/GT    
+   12   31    2.8  INTERIOR_LOOP:3/1
+   16   29   -1.3  STACK:CT/GA    
+   17   28   -0.1  STACK:TGA/AGT  
+   19   26   -1.0  STACK:AA/TT    
+   20   25    3.5  HAIRPIN:AC/TG  
+
+julia> dbn = dot_bracket(seq2, structs2)
+"..((.((((.((...((.((....)).)).)).)))).)).........."
+
+julia> length(dbn) == length(seq2)
+true
+
+julia> count(==('('), dbn)  # Count base pairs
+12
+```
+
+# Notes
+- The function only considers the base pairs explicitly listed in the `.ij` field of each `Structure`.
+- It does not validate that the input structures are consistent or represent a physically possible configuration.
+- Pseudoknots (non-nested base pairs) are not handled by this simple representation and will not be correctly shown
+  if present in the input structures.
+
+# See also
+[`fold`](@ref), [`Structure`](@ref)
 """
 function dot_bracket(seq::AbstractString, structs::Vector{Structure})
     n = length(seq)
@@ -131,10 +234,7 @@ Returns:
 """
 function _w!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
 
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _w! ($(i-1), $(j-1))")
-
+    
     if w_cache[i][j] != STRUCT_DEFAULT
         return w_cache[i][j]
     end
@@ -179,12 +279,6 @@ Returns:
     Structure: The minimum free energy structure possible between i and j.
 """
 function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
-
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _v! ($(i-1), $(j-1))")
-
-
     # --- Base Case: Check Cache ---
     if v_cache[i][j] != STRUCT_DEFAULT
         return v_cache[i][j]
@@ -258,11 +352,11 @@ function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
                 end
             elseif bulge_left && bulge_right && !pair_inner
                 # it's an interior loop
-                loop_size_left = i1 - i - 1
-                loop_size_right = j - j1 - 1
+                loop_size_left = i1 - i
+                loop_size_right = j - j1
                 e2_test_energy = _internal_loop(seq, i, i1, j, j1, temp, emap)
                 e2_test_type = string("INTERIOR_LOOP:", loop_size_left,'/', loop_size_right)
-                if loop_size_left == 1 && loop_size_right == 1
+                if loop_size_left == 2 && loop_size_right == 2
                     loop_left = seq[i:i1]
                     loop_right = seq[j1:j]
                     # technically an interior loop of 1. really 1bp mismatch
@@ -271,12 +365,12 @@ function _v!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
             elseif bulge_left && !bulge_right
                 # it's a bulge on the left side
                 e2_test_energy = _bulge(seq, i, i1, j, j1, temp, emap)
-                loop_size_left = i1 - i - 1
+                loop_size_left = i1 - i
                 e2_test_type = string("BULGE:", loop_size_left)
             elseif !bulge_left && bulge_right
                 # it's a bulge on the right side
                 e2_test_energy = _bulge(seq, i, i1, j, j1, temp, emap)
-                loop_size_right = j - j1 - 1
+                loop_size_right = j - j1
                 e2_test_type = string("BULGE:", loop_size_right)
             else
                 # it's basically a hairpin, only outside bp match, or other non-standard case
@@ -317,18 +411,8 @@ Returns:
     string representation of the pair
 """
 function _pair(s, i, i1, j, j1)::String
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _pair ($(i-1), $(i1-1), $(j-1), $(j1-1))")
-
     g(i) = get(s, i, '.')
-    return string(
-        g(i),
-        g(i1),
-        '/',
-        g(j),
-        g(j1)
-)
+    return string(g(i), g(i1), '/', g(j), g(j1))
 end
 
 """Return the struct with the lowest free energy that isn't -inf (undef)
@@ -360,10 +444,6 @@ Returns:
     The free energy increment in kcal / (mol x K)
 """
 function _d_g(d_h, d_s, temp_K)
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _d_g ($d_h, $d_s)")
-
     d_h - temp_K * d_s / 1000.0
 end
 
@@ -383,11 +463,6 @@ Returns:
     Free energy for a structure of length `query_len`
 """
 function _j_s(query_len, known_len, d_g_x, temp_K)::Float64
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _j_s ($query_len, $known_len, $d_g_x)")
-
-
     gas_constant = 1.9872e-3  # kcal/mol·K
     return d_g_x + 2.44 * gas_constant * temp_K * log(query_len / known_len)
 end
@@ -414,12 +489,6 @@ Returns:
     Float64: The free energy of the NN pairing.
 """
 function _stack(seq, i, i1, j, j1, temp, emap)::Float64
-    
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _stack ($(i-1), $(i1-1), $(j-1), $(j1-1))")
-
-
     n = length(seq)
     if any(>(n), (i, i1, j, j1))
         return 0.0
@@ -481,11 +550,6 @@ Returns:
     Float64: The free energy increment from the hairpin structure.
 """
 function _hairpin(seq, i, j, temp, emap)::Float64
-
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _hairpin ($(i-1), $(j-1))")
-    
     # --- Length Check ---
     if j - i < 4
         return Inf
@@ -552,11 +616,6 @@ Returns:
     Float64: The increment in free energy from the bulge.
 """
 function _bulge(seq, i, i1, j, j1, temp, emap)::Float64
-
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _bulge ($(i-1), $(i1-1), $(j-1), $(j1-1))")
-    
     # --- Calculate Bulge Loop Length ---
     loop_len = max(i1 - i - 1, j - j1 - 1)
     if loop_len <= 0
@@ -616,13 +675,6 @@ Returns:
     Float64: The free energy associated with the internal loop.
 """
 function _internal_loop(seq, i, i1, j, j1, temp, emap)::Float64
-    
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _internal_loop ($(i-1), $(i1-1), $(j-1), $(j1-1))")
-
-    n = length(seq)
-
     # --- Calculate Loop Sizes ---
     loop_left = i1 - i - 1
     loop_right = j - j1 - 1
@@ -695,11 +747,6 @@ Returns:
     Structure: A multi-branch structure.
 """
 function _multi_branch(seq, i, k, j, temp, v_cache, w_cache, emap, helix=false)::Structure
-
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _multi_branch ($(i-1), $(k-1), $(j-1))")
-
     left = helix ?
         _w!(seq, i + 1, k, temp, v_cache, w_cache, emap) :
         _w!(seq, i, k, temp, v_cache, w_cache, emap)
@@ -839,11 +886,6 @@ Returns:
     Vector{Structure}: A list of Structs in the final secondary structure.
 """
 function _traceback( i, j, v_cache, w_cache)::Vector{Structure}
-
-    # global COUNTER
-    # COUNTER += 1
-    # println("$COUNTER: _traceback ($(i-1), $(j-1))")
-
     s_w = w_cache[i][j]
     if !occursin("HAIRPIN", s_w.desc)
         while w_cache[i + 1][j] == s_w
