@@ -101,7 +101,7 @@ julia> tm(seq, conditions=custom_conds, Tris=50) # flexible adjustments
 
 ```julia
 # Get the list of possible secondary structures for a sequence
-julia> folded = fold(seq) # calculated at 37°C by default, Julia uses 1‑based indexing
+julia> folded = fold(seq) # calculated at 37°C by default, Julia uses 1-based indexing
 12-element Vector{SeqFold.Structure}:
     3   40   -1.3  STACK:GA/CT    
     4   39   -1.4  STACK:AGG/TGC  
@@ -116,8 +116,7 @@ julia> folded = fold(seq) # calculated at 37°C by default, Julia uses 1‑based
    19   26   -1.0  STACK:AA/TT    
    20   25    3.5  HAIRPIN:AC/TG 
 
-# Get the dot-bracket notation
-julia> dot_bracket(seq, folded)
+julia> dot_bracket(seq, folded) # get the dot-bracket notation
 "..((.((((.((...((.((....)).)).)).)))).)).........."
 
 julia> folded_hot = fold(seq, temp=80)
