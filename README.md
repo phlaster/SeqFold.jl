@@ -1,6 +1,158 @@
-# SeqFold
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://phlaster.github.io/SeqFold.jl/stable/)
+
+# SeqFold.jl
+[![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+<!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://phlaster.github.io/SeqFold.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://phlaster.github.io/SeqFold.jl/dev/)
 [![Build Status](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml?query=branch%3Amaster)
-[![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+
+[![CI](https://github.com/phlaster/SeqFold.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/phlaster/SeqFold.jl/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/phlaster/SeqFold.jl/branch/main/graph/badge.svg?token=J6JQ5XZQ8V)](https://codecov.io/gh/phlaster/SeqFold.jl) -->
+
+## Introduction
+
+`SeqFold.jl` is a high-performance Julia reimplementation of [`seqfold`](https://github.com/Lattice-Automation/seqfold) Python library for predicting nucleic acid secondary structures and calculating melting temperatures, which is, in turn, is an implementation of the `Zuker, 1981` dynamic programming algorithm, the basis for [UNAFold](http://unafold.rna.albany.edu/?q=DINAMelt/software)/[mfold](https://www.ibridgenetwork.org/#!/profiles/1045554571442/innovations/1/), with energy functions from `SantaLucia, 2004` (DNA) and `Turner, 2009` (RNA).
+
+## Motivation
+
+* Secondary structure prediction is essential for:
+  - Designing PCR primers with minimal secondary structure;
+  - Creating oligos for genome editing techniques like MAGE;
+  - Tuning ribosome binding site (RBS) expression rates;
+  - Analyzing potential off-target binding in CRISPR applications.
+
+* While the Python `seqfold` library provides a minimalist open-source alternative to UNAFold/mfold, it has several limitations:
+  - Performance bottlenecks in the pure Python implementation;
+  - Undocumented bugs in melting temperature calculations;
+  - Limited control over buffer conditions for $T_m$ calculations.
+
+* `SeqFold.jl` addresses these issues, here are the key points:
+  - For secondary structures prediction the compatibility with the original `seqfold` library results are preserved (no changes in folding algorithm);
+  - For accurate $T_m$ calculations buffer condition control is provided to user (physically impossible buffer conditions cause errors with meaningful error messages);
+  - $T_m$ calculations are validated against Biopython's reference implementation;
+  - Significantly improved performance through Julia's JIT compilation. For oligs of 20 nt (a typical length for primer sequences) around 5× speedup for `tm` and more than 30× speedup for `dg` is achieved:
+    ![seqfold vs SeqFold.jl](assets/benchmark.png)
+
+
+
+
+<!-- ## Installation
+
+```julia
+using Pkg
+Pkg.add("SeqFold")
+```
+
+Or via the package manager:
+
+```julia
+] add SeqFold
+``` -->
+
+## Basic Usage
+
+### Melting Temperature Calculation
+
+```julia
+julia> seq = "GGGAGGTCAGCAAACCTGAACCTGTTGAGATGTTGACGTCAGGAAACCCT";
+
+julia> tm(seq) # melting at PCR conditions, same as tm(seq, conditions=:pcr)
+80.4
+
+julia> MeltingConditions(:pcr) # here they are as a preset inherited from seqfold library
+MeltingConditions (PCR preset)
+  • NEB PCR buffer conditions for Taq DNA Polymerase
+  • seq1 concentration: 250.0 nM (typical primer concentration)
+  • seq2 concentration: 0.0 nM (asymmetric PCR)
+  • Mg²⁺: 1.5 mM (optimal for Taq DNA Polymerase per NEB guidelines)
+  • K⁺: 50.0 mM
+  • Tris: 2.0 mM
+  • dNTPs: 0.2 mM
+
+julia> tm(seq, Mg=5) # altering default conditions
+81.4
+
+julia> MeltingConditions(:std) # second preset, inherited from seqfold library
+MeltingConditions (standard preset)
+  • Standard hybridization buffer
+  • seq1 concentration: 25.0 nM
+  • seq2 concentration: 25.0 nM
+  • Na⁺: 50.0 mM
+
+julia> tm(seq, conditions=:std, Na=150) # altering chosen preset
+79.8
+
+julia> custom_conds = MeltingConditions( # Specifying custom conditions
+       seq1_conc=30,seq2_conc=20,Na=5,K=5,Tris=15,Mg=0,dNTPs=0)
+MeltingConditions (custom)
+  • seq1 concentration: 30.0 nM
+  • seq2 concentration: 20.0 nM
+  • Na⁺: 5.0 mM
+  • K⁺: 5.0 mM
+  • Tris: 15.0 mM
+
+julia> tm(seq, conditions=custom_conds, Tris=50) # flexible adjustments
+68.4
+```
+
+### Secondary Structure Prediction
+
+```julia
+# Get the list of possible secondary structures for a sequence
+julia> folded = fold(seq) # calculated at 37°C by default, Julia uses 1‑based indexing
+12-element Vector{SeqFold.Structure}:
+    3   40   -1.3  STACK:GA/CT    
+    4   39   -1.4  STACK:AGG/TGC  
+    6   37   -1.5  STACK:GT/CA    
+    7   36   -1.3  STACK:TC/AG    
+    8   35   -1.5  STACK:CA/GT    
+    9   34   -2.0  STACK:AGC/TTG  
+   11   32   -1.5  STACK:CA/GT    
+   12   31    2.8  INTERIOR_LOOP:4/2
+   16   29   -1.3  STACK:CT/GA    
+   17   28   -0.1  STACK:TGA/AGT  
+   19   26   -1.0  STACK:AA/TT    
+   20   25    3.5  HAIRPIN:AC/TG 
+
+# Get the dot-bracket notation
+julia> dot_bracket(seq, folded)
+"..((.((((.((...((.((....)).)).)).)))).)).........."
+
+julia> folded_hot = fold(seq, temp=80)
+4-element Vector{SeqFold.Structure}:
+    7   19   -0.4  STACK:TC/AG    
+    8   18   -0.5  STACK:CA/GT    
+    9   17   -0.4  STACK:AG/TC    
+   10   16    3.6  HAIRPIN:GC/CC 
+
+julia> dot_bracket(seq, folded_hot) # at a higher temperature number of secondary structures is decreased
+"......((((.....))))..............................."
+
+julia> dg(folded) # get the total free energy of the predicted secondary structures
+-6.6
+
+julia> dg(folded_hot)
+2.3
+
+julia> dg(seq, temp=4) # this method calls the computationally intensive `fold` internally
+-16.2
+```
+
+
+## Citations
+
+Papers, which helped in developing the original `seqfold` package:
+* **Nussinov, 1980:**
+  >Nussinov, Ruth, and Ann B. Jacobson. "Fast algorithm for predicting the secondary structure of single-stranded RNA." Proceedings of the National Academy of Sciences 77.11 (1980): 6309-6313.
+* **Zuker, 1981:**
+  >Zuker, Michael, and Patrick Stiegler. "Optimal computer folding of large RNA sequences using thermodynamics and auxiliary information." Nucleic acids research 9.1 (1981): 133-148.
+* **Jaeger, 1989:**
+  >Jaeger, John A., Douglas H. Turner, and Michael Zuker. "Improved predictions of secondary structures for RNA." Proceedings of the National Academy of Sciences 86.20 (1989): 7706-7710.
+* **SantaLucia, 2004:**
+  >SantaLucia Jr, John, and Donald Hicks. "The thermodynamics of DNA structural motifs." Annu. Rev. Biophys. Biomol. Struct. 33 (2004): 415-440.
+* **Turner, 2009:**
+  >Turner, Douglas H., and David H. Mathews. "NNDB: the nearest neighbor parameter database for predicting stability of nucleic acid secondary structure." Nucleic acids research 38.suppl_1 (2009): D280-D282.
+* **Ward, 2017:**
+  >Ward, M., Datta, A., Wise, M., & Mathews, D. H. (2017). Advanced multi-loop algorithms for RNA secondary structure prediction reveal that the simplest model is best. Nucleic acids research, 45(14), 8541-8550.
