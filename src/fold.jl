@@ -21,7 +21,6 @@ sequence length.
 - `seq::AbstractString`: DNA/RNA sequence
 - `temp::Real`: The temperature (°C) at which the folding is performed (default: `37.0`).
 
-
 # Examples
 ```jldoctest
 julia> fold("CCAACCGGTTGG")
@@ -38,8 +37,7 @@ julia> fold("CCAACCGGTTGG", temp=70)
 ```
 
 # See also
-[`dg`](@ref), [`dg_cache`](@ref), [`dot_bracket`](@ref), [`Structure`](@ref),
-[`SeqFold.DNA_ENERGIES`](@ref), [`SeqFold.RNA_ENERGIES`](@ref)
+[`dg`](@ref), [`SeqFold.dg_cache`](@ref), [`dot_bracket`](@ref), [`SeqFold.Structure`](@ref)
 """
 function fold(seq::AbstractString; temp::Real = 37.0)::Vector{Structure}    
     v_cache, w_cache = _cache(seq, temp)
@@ -51,8 +49,8 @@ end
     dg(seq; temp = 37.0) -> Float64
     dg(structures) -> Float64
 
-Compute the minimum free energy (ΔG, kcal/mol⁻¹) of the secondary structure
-predicted for a single-stranded nucleic acid sequence at a specified temperature.
+Compute the minimum free energy (ΔG, kcal/mol⁻¹) of a single-stranded
+nucleic acid sequence at a specified temperature.
 
 The function is a thin wrapper around the more general `fold` routine, which
 generates all energetically feasible secondary structures for the sequence.  
@@ -86,7 +84,7 @@ julia> dg(structures)
 ```
 
 # See also
-[`fold`](@ref), [`dg_cache`](@ref), [`SeqFold.DG_ENERGIES`](@ref)
+[`fold`](@ref), [`SeqFold.dg_cache`](@ref)
 """
 function dg(seq::AbstractString; temp::Real = 37.0)::Float64
     structs = fold(seq, temp=temp)
@@ -168,7 +166,7 @@ julia> count(==('('), dbn)  # Count base pairs
   if present in the input structures.
 
 # See also
-[`fold`](@ref), [`Structure`](@ref)
+[`fold`](@ref), [`SeqFold.Structure`](@ref)
 """
 function dot_bracket(seq::AbstractString, structs::Vector{Structure})
     n = length(seq)
