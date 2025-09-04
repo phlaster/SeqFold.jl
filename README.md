@@ -13,7 +13,7 @@
 
 ## Introduction
 
-`SeqFold.jl` is a high-performance Julia reimplementation of [`seqfold`](https://github.com/Lattice-Automation/seqfold) Python library for predicting nucleic acid secondary structures and calculating melting temperatures, which is, in turn, is an implementation of the `Zuker, 1981` dynamic programming algorithm, the basis for [UNAFold](http://unafold.rna.albany.edu/?q=DINAMelt/software)/[mfold](https://www.ibridgenetwork.org/#!/profiles/1045554571442/innovations/1/), with energy functions from `SantaLucia, 2004` (DNA) and `Turner, 2009` (RNA).
+`SeqFold.jl` is a high-performance Julia reimplementation of [`seqfold`](https://github.com/Lattice-Automation/seqfold) Python library for predicting nucleic acid secondary structures and calculating melting temperatures, which is, in turn, an implementation of the `Zuker, 1981` dynamic programming algorithm, the basis for [UNAFold/mfold](https://www.unafold.org/), with energy functions from `SantaLucia, 2004` (DNA) and `Turner, 2009` (RNA).
 
 ## Motivation
 
@@ -23,35 +23,29 @@
   - Tuning ribosome binding site (RBS) expression rates;
   - Analyzing potential off-target binding in CRISPR applications.
 
-* While the Python `seqfold` library provides a minimalist open-source alternative to UNAFold/mfold, it has several limitations:
+* While the Python `seqfold` library provides a minimalist open-source alternative to proprietary UNAFold/mfold, it has several limitations:
   - Performance bottlenecks in the pure Python implementation;
   - Undocumented bugs in melting temperature calculations;
   - Limited control over buffer conditions for $T_m$ calculations.
 
 * `SeqFold.jl` addresses these issues, here are the key points:
-  - For secondary structures prediction the compatibility with the original `seqfold` library results are preserved (no changes in folding algorithm);
-  - For accurate $T_m$ calculations buffer condition control is provided to user (physically impossible buffer conditions cause errors with meaningful error messages);
-  - $T_m$ calculations are validated against Biopython's reference implementation;
-  - Significantly improved performance through Julia's JIT compilation. For oligs of 20 nt (a typical length for primer sequences) around 5× speedup for `tm` and more than 30× speedup for `dg` is achieved:
+  - For sequence folding the compatibility with the original `seqfold` library results is preserved (identical folding algorithm is used);
+  - For accurate $T_m$ calculation buffer condition control is provided to user (physically impossible buffer conditions cause errors with meaningful error messages);
+  - $T_m$ calculation results are validated against Biopython's reference implementation;
+  - Significantly improved performance through Julia's JIT compilation. For oligs of 20 nt (a typical length for primer sequences) more than 4× speedup for `tm` and more than 20× speedup for `fold` is achieved:
     ![seqfold vs SeqFold.jl](assets/benchmark.png)
 
 
 
 
-<!-- ## Installation
-
-```julia
-using Pkg
-Pkg.add("SeqFold")
-```
-
-Or via the package manager:
-
-```julia
-] add SeqFold
-``` -->
 
 ## Basic Usage
+
+### Installation
+```julia
+julia> using Pkg
+julia> Pkg.add(url="https://github.com/phlaster/SeqFold.jl")
+```
 
 ### Melting Temperature Calculation
 

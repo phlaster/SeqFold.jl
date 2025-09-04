@@ -37,8 +37,7 @@ julia> fold("CCAACCGGTTGG", temp=70)
 ```
 
 # See also
-[`dg`](@ref), [`SeqFold.dg_cache`](@ref), [`dot_bracket`](@ref), [`SeqFold.Structure`](@ref),
-[`SeqFold.DNA_ENERGIES`](@ref), [`SeqFold.RNA_ENERGIES`](@ref)
+[`dg`](@ref), [`SeqFold.dg_cache`](@ref), [`dot_bracket`](@ref), [`SeqFold.Structure`](@ref)
 """
 function fold(seq::AbstractString; temp::Real = 37.0)::Vector{Structure}    
     v_cache, w_cache = _cache(seq, temp)
@@ -85,7 +84,7 @@ julia> dg(structures)
 ```
 
 # See also
-[`fold`](@ref), [`SeqFold.dg_cache`](@ref), [`SeqFold.DG_ENERGIES`](@ref)
+[`fold`](@ref), [`SeqFold.dg_cache`](@ref)
 """
 function dg(seq::AbstractString; temp::Real = 37.0)::Float64
     structs = fold(seq, temp=temp)
