@@ -1,15 +1,10 @@
-
-
-# SeqFold.jl
+# <div align="center"> <img src="docs/src/assets/logo.png" alt="SeqFold.jl" width="500"></img></div>
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://phlaster.github.io/SeqFold.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://phlaster.github.io/SeqFold.jl/dev/)
+[![Build Status](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-<!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://phlaster.github.io/SeqFold.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://phlaster.github.io/SeqFold.jl/dev/)
-[![Build Status](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml?query=branch%3Amaster)
-
-[![CI](https://github.com/phlaster/SeqFold.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/phlaster/SeqFold.jl/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/phlaster/SeqFold.jl/branch/main/graph/badge.svg?token=J6JQ5XZQ8V)](https://codecov.io/gh/phlaster/SeqFold.jl) -->
 
 ## Introduction
 
@@ -33,7 +28,7 @@
   - For accurate $T_m$ calculation buffer condition control is provided to user (physically impossible buffer conditions cause errors with meaningful error messages);
   - $T_m$ calculation results are validated against Biopython's reference implementation;
   - Significantly improved performance through Julia's JIT compilation. For oligs of 20 nt (a typical length for primer sequences) more than 4× speedup for `tm` and more than 20× speedup for `fold` is achieved:
-    ![seqfold vs SeqFold.jl](assets/benchmark.png)
+    ![seqfold vs SeqFold.jl](docs/src/assets/benchmark.png)
 
 
 
