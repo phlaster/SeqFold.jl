@@ -190,7 +190,7 @@ function run_benchmark(batch_size=100)
             quantile(all_python_seqfold_fold_times_us, 0.9)
         ))
         
-        CSV.write("assets/benchmark.csv", results)
+        CSV.write("docs/src/assets/benchmark.csv", results)
         
         println("\n- Summary for length $len:")
         println("  TM Functions:")
@@ -214,12 +214,12 @@ function run_benchmark(batch_size=100)
         println("-" ^ 70)
     end
     
-    println("\n Benchmarking complete. Results saved to assets/benchmark.csv")
+    println("\n Benchmarking complete. Results saved to docs/src/assets/benchmark.csv")
     return results
 end
 
 function plot_benchmark()
-    results = CSV.read("assets/benchmark.csv", DataFrame)
+    results = CSV.read("docs/src/assets/benchmark.csv", DataFrame)
 
     results.fastest_time_us ./= 1e6
     results.avg_time_us ./= 1e6
@@ -323,7 +323,7 @@ function plot_benchmark()
         linestyle=:dash
     )
 
-    savefig(p, "assets/benchmark.png")
+    savefig(p, "docs/src/assets/benchmark.png")
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

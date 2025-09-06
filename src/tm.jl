@@ -46,7 +46,6 @@ The calculation uses nearest-neighbor thermodynamic parameters from related lite
 accounting for initialization terms, nearest-neighbor pairs, and terminal mismatches when present.
 
 # See also
-[`SeqFold.DNA_NN`](@ref), [`SeqFold.DNA_INTERNAL_MM`](@ref), [`SeqFold.DNA_TERMINAL_MM`](@ref),
 [`MeltingConditions`](@ref)
 """
 function tm(seq1::AbstractString, seq2::AbstractString; conditions=:pcr, kwargs...)
@@ -139,7 +138,7 @@ The algorithm has `O(n²)` time and space complexity, where `n` is the sequence 
 This approach avoids redundant calculations when multiple Tm values for different subsequences are needed.
 
 # See also
-[`tm`](@ref), [`SeqFold.gc_cache`](@ref), [`SeqFold.DNA_NN`](@ref), [`SeqFold.DNA_INTERNAL_MM`](@ref)
+[`tm`](@ref), [`SeqFold.gc_cache`](@ref)
 """
 function tm_cache(seq1::AbstractString, seq2::AbstractString; conditions=:pcr, kwargs...)::Matrix{Float64}
     base_cond = MeltingConditions(conditions)

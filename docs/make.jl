@@ -11,10 +11,13 @@ makedocs(;
         canonical="https://phlaster.github.io/SeqFold.jl",
         edit_link="master",
         assets=String[],
+        sidebar_sitename=false,
     ),
+    checkdocs = :public,
     pages=[
-        "Exported Functions" => "index.md",
-        "Internals" => "internals.md",
+        "Home" => "index.md",
+        "Melting Temperature" => "tm.md",
+        "Sequence Folding" => "fold.md",
     ],
 )
 
