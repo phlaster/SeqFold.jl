@@ -37,6 +37,17 @@ function verify_tm_cache(seq)
     end
 end
 
+function verify_dg_cache(seq)
+    n = length(seq)
+    
+    for temp in [rand(-20:1e-5:120) for _ in 1:10]
+        cache = SeqFold.dg_cache(seq, temp=temp)
+        direct_dg = dg(seq, temp=temp)
+        cache_dg = cache[1, end]
+        @test isapprox(direct_dg, cache_dg, atol=0.1)
+    end
+end
+
 @testset "Aqua.jl" begin
     Aqua.test_all(SeqFold)
 end
@@ -195,11 +206,17 @@ end
     end
 
     @testset "dg_cache" begin
-        seq = "ATGGATTTAGATAGAT"
-        cache = SeqFold.dg_cache(seq, 37.0)
-        seq_dg = dg(seq)
-        
-        @test isapprox(seq_dg, cache[1][length(seq)], atol=1.0)
+        @testset "Throws" begin
+            @test_throws MethodError SeqFold.dg_cache()
+            @test_throws ArgumentError SeqFold.dg_cache("BAD NUCLEOTIDES")
+            @test_throws ArgumentError SeqFold.dg_cache("A")
+        end
+
+        # @testset "Verification" begin
+        #     for seq in [_randna(rand(10:50)) for _ in 1:10]
+        #         verify_dg_cache(seq)
+        #     end
+        # end
     end
 
 

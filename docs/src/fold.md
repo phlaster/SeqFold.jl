@@ -24,7 +24,6 @@ dot_bracket
 
 ```@docs
 dg
-SeqFold.dg_cache
 ```
 
 ## GC Content Cache
