@@ -97,23 +97,64 @@ function dg(structures::Vector{SeqFold.Structure})::Float64
     return round(ΔG, digits=2)
 end
 
-"""Fold a nucleic acid sequence and return the estimated ΔG of each (i,j) pairing.
-
-Args:
-    seq: The nucleic acid sequence to fold
-
-Keyword Args:
-    temp: The temperature to fold at
-
-Returns:
-    Cache: A Vector{Vector} where each [i][j] pairing corresponds to the
-        minimum free energy between i and j
 """
-function dg_cache(seq::AbstractString, temp::Real = 37.0)::Cache
+    dg_cache(seq; temp = 37.0) -> Matrix{Float64}
+
+Compute a matrix of free energy values for all possible subsequences of a nucleic acid sequence.
+
+The resulting matrix has element `[i, j]` representing the minimum free energy (ΔG) of the 
+subsequence from position `i` to position `j`. This cache enables efficient energy calculations 
+for various subsequences without redundant computations.
+
+# Arguments
+- `seq::AbstractString`: The nucleic acid sequence to analyze
+- `temp::Real`: The temperature (°C) at which to perform the energy calculation (default: `37.0`).
+
+# Returns
+A `Matrix{Float64}` where element `[i, j]` contains the free energy (in kcal/mol) of the subsequence 
+from position `i` to position `j`, inclusive. Elements where `j < i` contain `Inf` as they represent 
+invalid ranges, and single-nucleotide subsequences also have `Inf` as they don't have meaningful energy values.
+
+# Examples
+```jldoctest
+julia> SeqFold.dg_cache("ATCAT")
+5×5 Matrix{Float64}:
+ -Inf   Inf   Inf   Inf    4.00469
+ -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf  -Inf  -Inf  -Inf  -Inf
+
+julia> SeqFold.dg_cache("ATCAT", temp=60)
+5×5 Matrix{Float64}:
+ -Inf   Inf   Inf   Inf    4.26459
+ -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf  -Inf  -Inf  -Inf  -Inf
+```
+
+# Implementation
+The function uses dynamic programming to build a cache of free energy values for all subsequences.
+The algorithm has `O(n²)` time and space complexity, where `n` is the sequence length.
+This approach avoids redundant calculations when multiple energy values for different subsequences are needed.
+
+# See also
+[`fold`](@ref), [`SeqFold.tm_cache`](@ref), [`SeqFold.gc_cache`](@ref)
+"""
+function dg_cache(seq::AbstractString; temp::Real = 37.0)::Matrix{Float64}
     _, w_cache = _cache(seq, temp)
-    cache::Cache = [[s.e for s in row] for row in w_cache]
+    n = length(w_cache)
+    m = length(first(w_cache))
+    cache = Array{Float64}(undef, n, m)
+    @inbounds for i in 1:n
+        @simd for j in 1:m
+            cache[i, j] = w_cache[i][j].e
+        end
+    end
     return cache
 end
+
 
 """
     dot_bracket(seq, structs) -> String

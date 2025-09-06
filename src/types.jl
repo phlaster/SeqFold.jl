@@ -1,5 +1,4 @@
 const Comp = Dict{Char, Char}
-const Cache = Vector{Vector{Float64}}
 const MultiBranch = NTuple{4, Float64}
 const BpEnergy = Dict{String, Tuple{Float64, Float64}}
 const LoopEnergy = NTuple{30, Tuple{Float64, Float64}}
