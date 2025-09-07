@@ -7,7 +7,7 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC326673/pdf/nar00394-0137.pdf
 
 Implements the core of the nucleic acid folding algorithm. It calculates the
 thermodynamically most stable secondary structure for a given single-stranded
-DNA or RNA sequence. The result is a vector of  [`Structure`](@ref) objects, each element representing a
+DNA or RNA sequence. The result is a vector of  [`SeqFold.Structure`](@ref) objects, each element representing a
 distinct secondary structure (e.g., hairpin loop, stacked pair, bulge, interior loop, multibranch loop)
 that contributes to the overall folded structure.
 
@@ -84,7 +84,7 @@ julia> dg(structures)
 ```
 
 # See also
-[`fold`](@ref)
+[`fold`](@ref), [`SeqFold.dg_cache`](@ref)
 """
 function dg(seq::AbstractString; temp::Real = 37.0)::Float64
     structs = fold(seq, temp=temp)
@@ -119,17 +119,17 @@ invalid ranges, and single-nucleotide subsequences also have `Inf` as they don't
 ```jldoctest
 julia> SeqFold.dg_cache("ATCAT")
 5×5 Matrix{Float64}:
- -Inf   Inf   Inf   Inf    4.00469
- -Inf  -Inf  -Inf  -Inf   Inf
- -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf   Inf   Inf   Inf    4.0
+ -Inf  -Inf   Inf   Inf   Inf
+ -Inf  -Inf  -Inf   Inf   Inf
  -Inf  -Inf  -Inf  -Inf   Inf
  -Inf  -Inf  -Inf  -Inf  -Inf
 
-julia> SeqFold.dg_cache("ATCAT", temp=60)
+julia> SeqFold.dg_cache("ATCAT", temp=4)
 5×5 Matrix{Float64}:
- -Inf   Inf   Inf   Inf    4.26459
- -Inf  -Inf  -Inf  -Inf   Inf
- -Inf  -Inf  -Inf  -Inf   Inf
+ -Inf   Inf   Inf   Inf    3.6
+ -Inf  -Inf   Inf   Inf   Inf
+ -Inf  -Inf  -Inf   Inf   Inf
  -Inf  -Inf  -Inf  -Inf   Inf
  -Inf  -Inf  -Inf  -Inf  -Inf
 ```
@@ -139,19 +139,36 @@ The function uses dynamic programming to build a cache of free energy values for
 The algorithm has `O(n²)` time and space complexity, where `n` is the sequence length.
 This approach avoids redundant calculations when multiple energy values for different subsequences are needed.
 
+!!! note
+    The reliability of this function is questionable. For given `SeqFold.dg_cache(seq)` its `[1, end]`-th element
+    always equals to the `dg(seq)` called for the same `temp` value, but other `[i, j]` values
+    oftentimes fail to represent exact `dg(seq[i:j])`. The flaw may be with the original algorithm, as
+    [was shown](https://github.com/Lattice-Automation/seqfold/issues/20).
+
 # See also
 [`fold`](@ref), [`SeqFold.tm_cache`](@ref), [`SeqFold.gc_cache`](@ref)
 """
 function dg_cache(seq::AbstractString; temp::Real = 37.0)::Matrix{Float64}
-    _, w_cache = _cache(seq, temp)
-    n = length(w_cache)
-    m = length(first(w_cache))
-    cache = Array{Float64}(undef, n, m)
-    @inbounds for i in 1:n
-        @simd for j in 1:m
-            cache[i, j] = w_cache[i][j].e
+    v_cache, w_cache = _cache(seq, temp)
+    n = length(seq)
+    cache = fill(-Inf, n,n)
+    
+    for i in 1:n
+        for j in i+1:n
+            if j - i < 4
+                cache[i, j] = Inf
+            else
+                try
+                    structs = _traceback(i, j, v_cache, w_cache)
+                    ΔG = sum(s.e for s in structs)
+                    cache[i, j] = ΔG
+                catch
+                    cache[i, j] = Inf
+                end
+            end
         end
     end
+    
     return cache
 end
 

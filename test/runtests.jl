@@ -38,13 +38,11 @@ function verify_tm_cache(seq)
 end
 
 function verify_dg_cache(seq)
-    n = length(seq)
-    
     for temp in [rand(-20:1e-5:120) for _ in 1:10]
         cache = SeqFold.dg_cache(seq, temp=temp)
-        direct_dg = dg(seq, temp=temp)
-        cache_dg = cache[1, end]
-        @test isapprox(direct_dg, cache_dg, atol=0.1)
+        last_dg = dg(seq, temp=temp)
+        last_cache = cache[1, end]
+        @test isapprox(last_dg, last_cache, atol=0.1)
     end
 end
 
@@ -212,11 +210,11 @@ end
             @test_throws ArgumentError SeqFold.dg_cache("A")
         end
 
-        # @testset "Verification" begin
-        #     for seq in [_randna(rand(10:50)) for _ in 1:10]
-        #         verify_dg_cache(seq)
-        #     end
-        # end
+        @testset "Verification" begin
+            for seq in [_randna(rand(10:50)) for _ in 1:10]
+                verify_dg_cache(seq)
+            end
+        end
     end
 
 
