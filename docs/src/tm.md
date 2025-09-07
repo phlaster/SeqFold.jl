@@ -6,18 +6,9 @@
 
 ```@docs
 tm
-```
-
-## Buffer Conditions
-
-```@docs
-MeltingConditions
-```
-
-## Temperature Cache
-
-```@docs
 SeqFold.tm_cache
+MeltingConditions
+SeqFold.gc_cache
 ```
 
 ## Implementation Details
