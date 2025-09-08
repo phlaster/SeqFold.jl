@@ -32,15 +32,23 @@
 
 
 
-
-
 ## Basic Usage
 
 ### Installation
+
+First option (inside Julia REPL):
 ```julia
-julia> using Pkg
-julia> Pkg.add(url="https://github.com/phlaster/SeqFold.jl")
-julia> using SeqFold # and you are ready to go
+julia> ]
+pkg> add SeqFold
+```
+Second option (from Julia scripts):
+```julia
+using Pkg
+Pkg.add("SeqFold")
+```
+either way you should now be able to call the package:
+```julia
+using SeqFold
 ```
 
 ### Melting Temperature Calculation
