@@ -112,26 +112,26 @@ for various subsequences without redundant computations.
 
 # Returns
 A `Matrix{Float64}` where element `[i, j]` contains the free energy (in kcal/mol) of the subsequence 
-from position `i` to position `j`, inclusive. Elements where `j < i` contain `Inf` as they represent 
-invalid ranges, and single-nucleotide subsequences also have `Inf` as they don't have meaningful energy values.
+from position `i` to position `j`, inclusive. Elements where `j < i` contain `NaN` as they represent 
+invalid ranges, and single-nucleotide subsequences also have `NaN` as they don't have meaningful energy values.
 
 # Examples
 ```jldoctest
 julia> SeqFold.dg_cache("ATCAT")
 5×5 Matrix{Float64}:
- -Inf   Inf   Inf   Inf    4.0
- -Inf  -Inf   Inf   Inf   Inf
- -Inf  -Inf  -Inf   Inf   Inf
- -Inf  -Inf  -Inf  -Inf   Inf
- -Inf  -Inf  -Inf  -Inf  -Inf
+ NaN   Inf   Inf   Inf    4.0
+ NaN  NaN    Inf   Inf   Inf
+ NaN  NaN   NaN    Inf   Inf
+ NaN  NaN   NaN   NaN    Inf
+ NaN  NaN   NaN   NaN   NaN
 
 julia> SeqFold.dg_cache("ATCAT", temp=4)
 5×5 Matrix{Float64}:
- -Inf   Inf   Inf   Inf    3.6
- -Inf  -Inf   Inf   Inf   Inf
- -Inf  -Inf  -Inf   Inf   Inf
- -Inf  -Inf  -Inf  -Inf   Inf
- -Inf  -Inf  -Inf  -Inf  -Inf
+ NaN   Inf   Inf   Inf    3.6
+ NaN  NaN    Inf   Inf   Inf
+ NaN  NaN   NaN    Inf   Inf
+ NaN  NaN   NaN   NaN    Inf
+ NaN  NaN   NaN   NaN   NaN
 ```
 
 # Implementation
@@ -151,20 +151,16 @@ This approach avoids redundant calculations when multiple energy values for diff
 function dg_cache(seq::AbstractString; temp::Real = 37.0)::Matrix{Float64}
     v_cache, w_cache = _cache(seq, temp)
     n = length(seq)
-    cache = fill(-Inf, n,n)
+    cache = fill(NaN64, n,n)
     
     for i in 1:n
         for j in i+1:n
             if j - i < 4
                 cache[i, j] = Inf
             else
-                try
-                    structs = _traceback(i, j, v_cache, w_cache)
-                    ΔG = sum(s.e for s in structs)
-                    cache[i, j] = ΔG
-                catch
-                    cache[i, j] = Inf
-                end
+                structs = _traceback(i, j, v_cache, w_cache)
+                ΔG = sum(s.e for s in structs)
+                cache[i, j] = ΔG
             end
         end
     end

@@ -105,31 +105,31 @@ Compute a matrix of melting temperatures for all possible subsequences of a DNA 
 
 # Returns
 A `Matrix{Float64}` where element (`i`, `j`) contains the melting temperature (in °C) of the subsequence
-from position `i` to position `j`, inclusive. Elements where `j < i` contain `Inf` as they represent
-invalid ranges, and single-nucleotide subsequences also have `Inf` as they don't have meaningful Tm values.
+from position `i` to position `j`, inclusive. Elements where `j < i` contain `NaN` as they represent
+invalid ranges, and single-nucleotide subsequences also have `NaN` as they don't have meaningful Tm values.
 
 # Examples
 ```jldoctest
 julia> SeqFold.tm_cache("ATCC")
 4×4 Matrix{Float64}:
- Inf  -212.6   -95.3   -48.6
- Inf    Inf   -161.6   -82.7
- Inf    Inf     Inf   -135.5
- Inf    Inf     Inf     Inf
+ NaN  -212.6   -95.3   -48.6
+ NaN   NaN    -161.6   -82.7
+ NaN   NaN     NaN    -135.5
+ NaN   NaN     NaN     NaN
 
 julia> SeqFold.tm_cache("AAGC", "TTCG")
 4×4 Matrix{Float64}:
- Inf  -204.8   -94.6   -40.3
- Inf    Inf   -166.7   -72.9
- Inf    Inf     Inf   -116.7
- Inf    Inf     Inf     Inf
+ NaN  -204.8   -94.6   -40.3
+ NaN   NaN    -166.7   -72.9
+ NaN   NaN     NaN    -116.7
+ NaN   NaN     NaN     NaN
 
 julia> SeqFold.tm_cache("AAGC", "TTCG"; conditions=:std)
 4×4 Matrix{Float64}:
- Inf  -213.1  -109.3   -55.6
- Inf    Inf   -177.9   -88.1
- Inf    Inf     Inf   -129.8
- Inf    Inf     Inf     Inf
+ NaN  -213.1  -109.3   -55.6
+ NaN   NaN    -177.9   -88.1
+ NaN   NaN     NaN    -129.8
+ NaN   NaN     NaN     NaN
 ```
 
 # Implementation
@@ -182,7 +182,7 @@ function tm_cache(seq1::AbstractString, seq2::AbstractString; conditions=:pcr, k
     
     gc_matrix = gc_cache(seq1)
     
-    cache = fill(Inf, n, n)
+    cache = fill(NaN64, n, n)
     
     @inbounds for L in 2:n
         for i in 1:(n - L + 1)
@@ -231,29 +231,29 @@ GC ratio calculations for various subsequences without redundant computations.
 
 # Returns
 A `Matrix{Float64}` where element `[i, j]` contains the GC ratio of the subsequence from position `i` to `j`.
-Elements where `j < i` contain `Inf` as they represent invalid ranges.
+Elements where `j < i` contain `NaN` as they represent invalid ranges.
 
 # Examples
 ```jldoctest
 julia> SeqFold.gc_cache("GGAA")
 4×4 Matrix{Float64}:
-  1.0   1.0   0.666667  0.5
- Inf    1.0   0.5       0.333333
- Inf   Inf    0.0       0.0
- Inf   Inf   Inf        0.0
+   1.0    1.0    0.666667  0.5
+ NaN      1.0    0.5       0.333333
+ NaN    NaN      0.0       0.0
+ NaN    NaN    NaN         0.0
 
 julia> SeqFold.gc_cache("GAAA")
 4×4 Matrix{Float64}:
-  1.0   0.5   0.333333  0.25
- Inf    0.0   0.0       0.0
- Inf   Inf    0.0       0.0
- Inf   Inf   Inf        0.0
+   1.0    0.5    0.333333  0.25
+ NaN      0.0    0.0       0.0
+ NaN    NaN      0.0       0.0
+ NaN    NaN    NaN         0.0
 
 julia> SeqFold.gc_cache("ATA")
 3×3 Matrix{Float64}:
-  0.0   0.0  0.0
- Inf    0.0  0.0
- Inf   Inf   0.0
+   0.0    0.0  0.0
+ NaN      0.0  0.0
+ NaN    NaN    0.0
 
 julia> SeqFold.gc_cache("GGTT") == SeqFold.gc_cache("CCAA")
 true
@@ -269,7 +269,7 @@ function gc_cache(seq::AbstractString)::Matrix{Float64}
         prefix[i+1] = prefix[i] + (seq[i] in "GC" ? 1 : 0)
     end
     
-    M = fill(Inf, n, n)
+    M = fill(NaN64, n, n)
     
     @inbounds @simd for i in 1:n
         for j in i:n
