@@ -91,8 +91,8 @@ function tm(seq::AbstractString; conditions=:pcr, kwargs...)
 end
 
 """
-    tm_cache(seq1, seq2; conditions=:pcr, kwargs...) -> Matrix{Float64}
-    tm_cache(seq; conditions=:pcr, kwargs...) -> Matrix{Float64}
+    SeqFold.tm_cache(seq1, seq2; conditions=:pcr, kwargs...) -> Matrix{Float64}
+    SeqFold.tm_cache(seq; conditions=:pcr, kwargs...) -> Matrix{Float64}
 
 Compute a matrix of melting temperatures for all possible subsequences of a DNA sequence pair.
 
@@ -218,7 +218,7 @@ function tm_cache(seq::AbstractString; conditions=:pcr, kwargs...)::Matrix{Float
 end
 
 """
-    gc_cache(seq) -> Matrix{Float64}
+    SeqFold.gc_cache(seq) -> Matrix{Float64}
 
 Compute a matrix of GC scores for all possible subsequences of a DNA sequence.
 
@@ -254,9 +254,6 @@ julia> SeqFold.gc_cache("ATA")
    0.0    0.0  0.0
  NaN      0.0  0.0
  NaN    NaN    0.0
-
-julia> SeqFold.gc_cache("GGTT") == SeqFold.gc_cache("CCAA")
-true
 ```
 
 # See also

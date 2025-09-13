@@ -1,9 +1,8 @@
-# SeqFold
-
-```@meta
-CurrentModule = SeqFold
+# Home
+```@contents
+Pages = ["index.md", "tm.md", "fold.md", "juliacall.md"]
+Depth = 3
 ```
-
 ## Introduction
 
 [`SeqFold.jl`](https://github.com/phlaster/SeqFold.jl) is a high-performance Julia reimplementation of [`seqfold`](https://github.com/Lattice-Automation/seqfold) Python library for predicting nucleic acid secondary structures and calculating melting temperatures, which is, in turn, an implementation of the `Zuker, 1981` dynamic programming algorithm, the basis for [UNAFold/mfold](https://www.unafold.org/), with energy functions from `SantaLucia, 2004` (DNA) and `Turner, 2009` (RNA).
@@ -47,7 +46,4 @@ using SeqFold
 
 ```@docs
 SeqFold
-```
-
-```@contents
 ```

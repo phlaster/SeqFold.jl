@@ -1,6 +1,7 @@
-## Calling from Python scripts
+# Calling from Python scripts
 SeqFold can be called from Python scripts via `juliacall package`:
 
+## Showcase
 1. Install [`juliacall`](https://pypi.org/project/juliacall) package through you favourite package manager (pip, Conda, uv):
 ```bash
 $ pip install juliacall
@@ -10,7 +11,7 @@ $ pip install juliacall
 Python 3.13.7 | packaged by conda-forge | (main, Sep  3 2025, 14:30:35) [GCC 14.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> from juliacall import Main as jl # this will download Julia binaries
->>> jl.seval("""using Pkg; Pkg.add(url="https://github.com/phlaster/SeqFold.jl")""")
+>>> jl.seval("""using Pkg; Pkg.add("SeqFold")""")
 >>> jl.seval("using SeqFold") # this exports tm, fold, dg, ...
 >>> jl.fold("ACACGCAGCGGGTGTGGCTGTGGTGC")
 Julia:

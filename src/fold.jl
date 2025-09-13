@@ -2,8 +2,7 @@
     fold(seq; temp = 37.0) -> Vector{Structure}
 
 Predict the minimum free energy secondary structure of a nucleic acid sequence using a
-dynamic programming algorithm based on the Zuker and Stiegler (1981) approach.
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC326673/pdf/nar00394-0137.pdf
+dynamic programming algorithm based on the [Zuker and Stiegler (1981) approach](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC326673/pdf/nar00394-0137.pdf).
 
 Implements the core of the nucleic acid folding algorithm. It calculates the
 thermodynamically most stable secondary structure for a given single-stranded
@@ -12,8 +11,8 @@ distinct secondary structure (e.g., hairpin loop, stacked pair, bulge, interior 
 that contributes to the overall folded structure.
 
 An optimization is applied where "isolated" base pairs (those not adjacent to other base pairs)
-are penalized with a high energy cost (1600.0 kcal/mol) to speed up computation. A base pair (i,j)
-is considered isolated if neither the pair (i-1, j+1) nor the pair (i+1, j-1) are complementary
+are penalized with a high energy cost (1600.0 kcal/mol) to speed up computation. A base pair `(i,j)`
+is considered isolated if neither the pair `(i-1, j+1)` nor the pair `(i+1, j-1)` are complementary
 according to the sequence's complementarity rules. This optimization is applied regardless of
 sequence length.
 
@@ -49,7 +48,7 @@ end
     dg(seq; temp = 37.0) -> Float64
     dg(structures) -> Float64
 
-Compute the minimum free energy (ΔG, kcal/mol⁻¹) of a single-stranded
+Compute the minimum free energy (`ΔG`, kcal/mol⁻¹) of a single-stranded
 nucleic acid sequence at a specified temperature.
 
 The function is a thin wrapper around the more general `fold` routine, which
@@ -98,7 +97,7 @@ function dg(structures::Vector{SeqFold.Structure})::Float64
 end
 
 """
-    dg_cache(seq; temp = 37.0) -> Matrix{Float64}
+    SeqFold.dg_cache(seq; temp = 37.0) -> Matrix{Float64}
 
 Compute a matrix of free energy values for all possible subsequences of a nucleic acid sequence.
 
@@ -251,7 +250,7 @@ Returns:
 """
 function _cache(seq, temp)
     if !(-50 ≤ temp ≤ 150)
-        throw(ArgumentError("Temperature in °C is outside reasonable range"))
+        throw(ArgumentError("Temperature in °C is outside reasonable [-50, 150] range"))
     end
     temp_K = temp + 273.15
 
@@ -277,12 +276,12 @@ Args:
     i: The start index.
     j: The end index (1-based, inclusive).
     temp: The temperature in Kelvin.
-    v_cache: Free energy cache for if i and j base pair. Stores `Structure`.
-    w_cache: Free energy cache for lowest energy structure from i to j. Stores `Structure`.
+    v_cache: Free energy cache for if `i` and `j` base pair. Stores `Structure`.
+    w_cache: Free energy cache for lowest energy structure from `i` to `j`. Stores `Structure`.
     emap: Energy map for DNA/RNA (`Energies` struct).
 
 Returns:
-    Structure: The minimum free energy structure for the subsequence from i to j.
+    Structure: The minimum free energy structure for the subsequence from `i` to `j`.
 """
 function _w!(seq, i, j, temp, v_cache, w_cache, emap)::Structure
 
