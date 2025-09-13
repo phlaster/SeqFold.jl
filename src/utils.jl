@@ -72,6 +72,55 @@ function complement(seq::AbstractVector{UInt8})
     return _comp_bytes!(out, seq)
 end
 
+"""
+    SeqFold.complement(seq)
+
+Compute the Watson-Crick complement of a DNA sequence.
+
+This function converts each base in the input sequence to its complementary base,
+handling both uppercase and lowercase inputs. Non-standard bases (anything other than `'A'`, `'T'`, `'C'`, `'G'`)
+are converted to a period (`'.'`).
+
+# Arguments
+- `seq::AbstractString | AbstractVector{UInt8}`: A DNA sequence as either a string or raw byte representation.
+
+# Returns
+A new string (if input was a string) or vector of bytes (if input was bytes) representing the complementary DNA sequence.
+
+# Examples
+```jldoctest
+julia> SeqFold.complement("ACGT")
+"TGCA"
+
+julia> SeqFold.complement("ACGTacgt")
+"TGCATGCA"
+
+julia> SeqFold.complement("ACGTN")
+"TGCA."
+
+julia> SeqFold.complement("XYZ")
+"..."
+
+julia> SeqFold.complement(b"ACGT")
+4-element Vector{UInt8}:
+ 0x54
+ 0x47
+ 0x43
+ 0x41
+
+julia> String(SeqFold.complement(b"ACGT"))
+"TGCA"
+
+julia> s = "ACACTAC"; SeqFold.complement(SeqFold.complement(s)) == s
+true
+```
+
+# Notes
+- The function normalizes all output to uppercase bases.
+- For string inputs, the output is a string; for byte vector inputs, the output is a byte vector.
+- This is specifically designed for DNA sequences (not RNA, which would use U instead of T).
+- The complement of a complement returns the original sequence (except for non-standard bases which become '.').
+"""
 function complement(seq::AbstractString)
     out_bytes = complement(codeunits(seq))
     return String(out_bytes)

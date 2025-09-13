@@ -27,6 +27,7 @@ function verify_tm_cache(seq)
     
     for conds in [_randconds() for _ in 1:10]
         cache = SeqFold.tm_cache(seq, seq2, conditions=conds)
+        @test count(isnan, cache) == (n^2 - n) ÷ 2 + n
         for _ in 1:10
             i = rand(1:n-2)
             j = min(i+rand(1:n÷2), n)
@@ -38,8 +39,10 @@ function verify_tm_cache(seq)
 end
 
 function verify_dg_cache(seq)
+    n = length(seq)
     for temp in [rand(-20:1e-5:120) for _ in 1:10]
         cache = SeqFold.dg_cache(seq, temp=temp)
+        @test count(isnan, cache) == (n^2 - n) ÷ 2 + n
         last_dg = dg(seq, temp=temp)
         last_cache = cache[1, end]
         @test isapprox(last_dg, last_cache, atol=0.1)
@@ -158,7 +161,7 @@ end
                 seq = _randna(n)
                 M = SeqFold.gc_cache(seq)
                 @test size(M) == (n, n)
-                @test count(isinf, M) == (n^2 - n) ÷ 2
+                @test count(isnan, M) == (n^2 - n) ÷ 2
 
                 isgc = Float64[c in "GC" for c in seq]
                 @test isgc == diag(M)
