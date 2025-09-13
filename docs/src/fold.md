@@ -5,7 +5,10 @@
 ## Showcase
 
 ```julia
-# Get the list of possible secondary structures for a sequence
+julia> seq = "GGGAGGTCAGCAAACCTGAACCTGTTGAGATGTTGACGTCAGGAAACCCT";
+
+julia> # Get the list of possible secondary structures for a sequence
+
 julia> folded = fold(seq) # calculated at 37°C by default, Julia uses 1-based indexing
 12-element Vector{SeqFold.Structure}:
     3   40   -1.3  STACK:GA/CT    
