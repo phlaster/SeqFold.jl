@@ -1,7 +1,5 @@
 module SeqFold
 
-using Base: VersionNumber
-
 """
 Nucleic acid folding and melting temperature calculation
 
