@@ -7,7 +7,7 @@ Exports: [`tm`](@ref), [`MeltingConditions`](@ref), [`fold`](@ref), [`dg`](@ref)
 
 Documentation: https://phlaster.github.io/SeqFold.jl/
 
-$(isnothing(get(ENV, "CI", nothing)) ? ("\n" * "Local path: " * pathof(SeqFold)) : "") 
+$(isnothing(get(ENV, "CI", nothing)) ? ("\nLocal path: $(pathof(SeqFold))") : "") 
 """
 SeqFold
 

@@ -3,6 +3,7 @@ using Test
 using LinearAlgebra
 using Aqua
 using Logging
+using JET
 
 function _randna(n)
     String(rand("AGTC", n))
@@ -52,6 +53,10 @@ end
 
 @testset "Aqua.jl" begin
     Aqua.test_all(SeqFold)
+end
+
+@testset "JET.jl" begin
+    JET.test_package(SeqFold; target_defined_modules = true)
 end
 
 @testset "tm.jl" begin
