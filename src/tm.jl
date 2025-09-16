@@ -1,3 +1,15 @@
+const IUPAC_MAP = Dict(
+    'A'=>"A",  'C'=>"C",  'G'=>"G",  'T'=>"T",
+    'R'=>"AG", 'Y'=>"CT", 'S'=>"CG", 'W'=>"AT",
+    'K'=>"GT", 'M'=>"AC", 'B'=>"CGT",'D'=>"AGT",
+    'H'=>"ACT",'V'=>"ACG",'N'=>"ACGT"
+)
+const IUPAC_COUNTS = Dict(
+    'A' => 1, 'C' => 1, 'G' => 1, 'T' => 1,
+    'M' => 2, 'R' => 2, 'W' => 2, 'S' => 2, 'Y' => 2, 'K' => 2,
+    'V' => 3, 'H' => 3, 'D' => 3, 'B' => 3, 'N' => 4
+)
+
 """
     tm(seq1, seq2; conditions=:pcr, kwargs...) -> Float64
     tm(seq; conditions=:pcr, kwargs...)  -> Float64
@@ -91,55 +103,84 @@ function tm(seq::AbstractString; conditions=:pcr, kwargs...)
 end
 
 """
-    tm_deg(seq; conditions=:pcr, high_deg_warn=10^5, kwargs...) -> Float64
+    tm_deg(seq; conditions=:pcr, high_deg_warn=10^5, conf_level=0.95, kwargs...) -> NamedTuple
 
-Calculate the average melting temperature (Tm °C) for a degenerate DNA sequence by enumerating all possible 
-non-degenerate variants and averaging their melting temperatures using nearest-neighbor thermodynamics.
+Calculate statistics of melting temperature (Tm °C) for a degenerate DNA sequence by enumerating all possible 
+non-degenerate variants and computing their melting temperatures using nearest-neighbor thermodynamics.
 
 This function handles IUPAC ambiguity codes by generating all possible non-degenerate 
-sequences, computing [`tm`](@ref) for each, and returning the average. A warning is issued when the number of 
+sequences, computing [`tm`](@ref) for each, and returning both the average temperature and a confidence interval 
+that contains `conf_level` proportion of variants. A warning is issued when the number of 
 variants exceeds `high_deg_warn` as computation may become slow for highly degenerate sequences.
 
 # Arguments
 - `seq::AbstractString`: Degenerate DNA sequence (with IUPAC ambiguity codes);
 - `conditions`: Buffer conditions specification (see [`tm`](@ref) for detailed review);
-- `high_deg_warn`: Threshold for warning about high degeneracy (number of variants). Set non positive or `false` to disable;
+- `high_deg_warn`: Threshold for warning about high degeneracy (number of variants). Set non-positive or `false` to disable;
+- `conf_level::Float64`: Confidence level `(0,1]` for the interval. For example, 0.95 means 95% of variants fall within the interval;
 - `kwargs...`: Additional parameters to override preset conditions in place.
+
+# Returns
+A `NamedTuple` with fields:
+- `mean::Float64`: Average melting temperature across all variants (rounded to 1 decimal place)
+- `conf::Tuple{Float64, Float64}`: Confidence interval bounds `(lower, upper)` containing `conf_level` proportion of variants
 
 # Examples
 ```jldoctest
-julia> tm_deg("GGGGGG") == tm("GGGGGG") # equal results for non degenerate sequences
-true
+julia> tm_deg("GGGGGG") # non-degenerate sequence
+(mean = 15.5, conf = (15.5, 15.5))
 
-julia> T_w = tm_deg("GGGGGW") # W for A or T
-10.5
+julia> result = tm_deg("GGGGGW") # W for A or T
+(mean = 10.5, conf = (10.0, 11.0))
 
 julia> T_a, T_t = tm("GGGGGA"), tm("GGGGGT")
 (10.0, 11.0)
 
-julia> isapprox(T_w, (T_a+T_t)/2, atol=0.1)
+julia> isapprox(result.mean, (T_a+T_t)/2, atol=0.1)
 true
 
-julia> tm_deg("GGGGGW", conditions=:std) # same presets as for `tm`
--3.4
+julia> result.conf == (min(T_a, T_t), max(T_a, T_t)) # for binary degeneracy, interval spans all values
+true
+
+julia> tm_deg("GGGGGW", conditions=:std) # standard conditions
+(mean = -3.4, conf = (-3.9, -2.9))
 
 julia> tm_deg("GGGGGW", Mg=5) # adjust conditions in-place
-16.2
+(mean = 16.2, conf = (15.7, 16.8))
 
-julia> tm_deg("NNNNNNNNN")
+julia> tm_deg("NNNNNNN", conf_level=0.5) # 50% confidence interval (middle 50% of variants)
+(mean = 11.3, conf = (4.8, 17.7))
+
+julia> tm_deg("NNNNNNN", conf_level=0.9) # 90% confidence interval
+(mean = 11.3, conf = (-4.4, 27.1))
+
+julia> tm_deg("NNNNNNNNN");
 ┌ Warning: High degeneracy: 9 positions → 262144 variants. Computation may be slow.
 [...]
 
 julia> tm_deg("NNNNNNNNN", high_deg_warn=1e6) # increase warning threshold
-28.4
+(mean = 28.4, conf = (14.8, 42.2))
 
 julia> tm_deg("NNNNNNNNN", high_deg_warn=false) # disable warning entirely
-28.4
+(mean = 28.4, conf = (14.8, 42.2))
 ```
+
+# Note!
+Recommended for sequences with ≤5 degenerate positions; for higher degeneracy, computation becomes slow.
+
 # See also
 [`tm`](@ref), [`MeltingConditions`](@ref)
 """
-function tm_deg(seq::AbstractString; conditions=:pcr, high_deg_warn=10^5, kwargs...)
+function tm_deg(seq::AbstractString; 
+                conditions=:pcr, 
+                high_deg_warn=10^5,
+                conf_level=0.9,
+                kwargs...)::@NamedTuple{mean::Float64, conf::NTuple{2, Float64}}
+    
+    if !(0 < conf_level <= 1)
+        throw(ArgumentError("conf_level must be between 0 and 1"))
+    end
+    
     base_cond = MeltingConditions(conditions)
     cond = isempty(kwargs) ? base_cond : MeltingConditions(base_cond; kwargs...)
 
@@ -150,31 +191,22 @@ function tm_deg(seq::AbstractString; conditions=:pcr, high_deg_warn=10^5, kwargs
         throw(ArgumentError("Input sequence contains unallowed characters: $(join(collect(setdiff(seq_chars, allowed_chars)), ", "))"))
     end
 
-    iupac_map = Dict(
-        'A'=>"A",  'C'=>"C",  'G'=>"G",  'T'=>"T",
-        'R'=>"AG", 'Y'=>"CT", 'S'=>"CG", 'W'=>"AT",
-        'K'=>"GT", 'M'=>"AC", 'B'=>"CGT",'D'=>"AGT",
-        'H'=>"ACT",'V'=>"ACG",'N'=>"ACGT"
-    )
-
     n_degenerate = 0
     n_possible = BigInt(1)
-    iupac_counts = Dict(
-        'A' => 1, 'C' => 1, 'G' => 1, 'T' => 1,
-        'M' => 2, 'R' => 2, 'W' => 2, 'S' => 2, 'Y' => 2, 'K' => 2,
-        'V' => 3, 'H' => 3, 'D' => 3, 'B' => 3, 'N' => 4
-    )
     
     @simd for char in seq
         if char in "MRWSYKVHDBN"
             n_degenerate += 1
         end
-        n_possible *= iupac_counts[char]
+        n_possible *= IUPAC_COUNTS[char]
     end
 
     if n_possible == 1
-        return tm(seq; conditions=cond)
-    elseif n_possible > high_deg_warn && high_deg_warn > 0
+        t = tm(seq; conditions=cond)
+        return (mean=t, conf=(t, t))
+    end
+    
+    if n_possible > high_deg_warn && high_deg_warn > 0
         @warn "High degeneracy: $n_degenerate positions → $n_possible variants. Computation may be slow."
     end
 
@@ -182,19 +214,20 @@ function tm_deg(seq::AbstractString; conditions=:pcr, high_deg_warn=10^5, kwargs
     options = Vector{String}(undef, seq_len)
     lens = Vector{Int}(undef, seq_len)
     for (i, c) in enumerate(seq)
-        options[i] = iupac_map[c]
+        options[i] = IUPAC_MAP[c]
         lens[i] = length(options[i])
     end
 
     indices = ones(Int, seq_len)
     buffer = Vector{Char}(undef, seq_len)
-    sum_temp = 0.0
+    
+    tm_values = Vector{Float64}(undef, n_possible)
 
-    @inbounds for _ in 1:n_possible
-        @simd for j in 1:seq_len
+    @inbounds for i in 1:n_possible
+        for j in 1:seq_len
             buffer[j] = options[j][indices[j]]
         end
-        sum_temp += tm(String(buffer); conditions=cond)
+        tm_values[i] = tm(String(buffer); conditions=cond)
         
         pos = seq_len
         while pos > 0
@@ -207,7 +240,26 @@ function tm_deg(seq::AbstractString; conditions=:pcr, high_deg_warn=10^5, kwargs
         end
     end
 
-    return round(Float64(sum_temp / n_possible), digits=1)
+    mean_tm = Float64(sum(tm_values) / n_possible)
+    
+    low_percentile = (1 - conf_level) / 2
+    high_percentile = 1 - low_percentile
+    
+    sorted_tm = sort(tm_values)
+    n = length(sorted_tm)
+    
+    low_idx = max(1, min(n, round(Int, low_percentile * (n-1)) + 1))
+    high_idx = max(1, min(n, round(Int, high_percentile * (n-1)) + 1))
+    
+    conf_interval = (
+        round(sorted_tm[low_idx], digits=1), 
+        round(sorted_tm[high_idx], digits=1)
+    )
+    
+    return (
+        mean = round(mean_tm, digits=1),
+        conf = conf_interval
+    )
 end
 
 """
@@ -224,7 +276,7 @@ Compute a matrix of melting temperatures for all possible subsequences of a DNA 
 - `kwargs...`: Additional parameters to override preset conditions in place.
 
 # Returns
-A `Matrix{Float64}` where element (`i`, `j`) contains the melting temperature (in °C) of the subsequence
+A `Matrix{Float64}` where element `[i, j]` contains the melting temperature (in °C) of the subsequence
 from position `i` to position `j`, inclusive. Elements where `j < i` contain `NaN` as they represent
 invalid ranges, and single-nucleotide subsequences also have `NaN` as they don't have meaningful Tm values.
 
