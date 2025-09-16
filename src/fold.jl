@@ -613,7 +613,7 @@ function _hairpin(seq, i, j, temp, emap)::Float64
     # --- Terminal Pair Check ---
     if emap.COMPLEMENT[first(hairpin)] != last(hairpin)
         # not known terminal pair, nothing to close "hairpin"
-        throw(RuntimeError("Hairpin terminal pair does not match complement rules."))
+        throw(ErrorException("Hairpin terminal pair does not match complement rules."))
     end
 
     # --- Initialize Energy ---
@@ -670,7 +670,7 @@ function _bulge(seq, i, i1, j, j1, temp, emap)::Float64
     # --- Calculate Bulge Loop Length ---
     loop_len = max(i1 - i - 1, j - j1 - 1)
     if loop_len <= 0
-       throw(RuntimeError("Bulge loop length must be positive."))
+       throw(ErrorException("Bulge loop length must be positive."))
     end
 
     # --- Initialize Energy ---
@@ -733,7 +733,7 @@ function _internal_loop(seq, i, i1, j, j1, temp, emap)::Float64
 
     # --- Validate Loop Sizes ---
     if loop_left < 1 || loop_right < 1
-        throw(RuntimeError("Internal loop sides must each have at least one unpaired base."))
+        throw(ErrorException("Internal loop sides must each have at least one unpaired base."))
     end
 
     # --- Special Case: Single Base Mismatch (1x1 Internal Loop) ---
