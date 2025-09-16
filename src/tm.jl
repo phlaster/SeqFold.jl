@@ -103,7 +103,7 @@ function tm(seq::AbstractString; conditions=:pcr, kwargs...)
 end
 
 """
-    tm_deg(seq; conditions=:pcr, high_deg_warn=10^5, conf_level=0.95, kwargs...) -> NamedTuple
+    tm_deg(seq; conditions=:pcr, high_deg_warn=10^5, conf_level=0.9, kwargs...) -> NamedTuple
 
 Calculate statistics of melting temperature (Tm °C) for a degenerate DNA sequence by enumerating all possible 
 non-degenerate variants and computing their melting temperatures using nearest-neighbor thermodynamics.

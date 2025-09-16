@@ -44,12 +44,24 @@ MeltingConditions (custom)
 
 julia> tm(seq, conditions=custom_conds, Tris=50) # flexible adjustments
 68.4
+
+julia> degen_dna = "GRNCGTCGAATATGACGG"; # degenerate IUPAC bases are welcome here as well
+
+julia> tm_deg(degen_dna, conf_level=0.5) # set % of non-degen tm-s to fit within conf. interval
+(mean = 59.9, conf = (59.7, 60.1))
+
+julia> tm_deg(degen_dna) # 0.9 is the default `conf_level`
+(mean = 59.9, conf = (56.9, 63.0))
+
+julia> tm_deg(degen_dna, Mg=4) # all conditions modifications are applicable here as well
+(mean = 62.0, conf = (59.1, 65.0))
 ```
 
 ## Public API
 
 ```@docs
 tm
+tm_deg
 SeqFold.tm_cache
 MeltingConditions
 SeqFold.gc_cache
