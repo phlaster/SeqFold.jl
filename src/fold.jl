@@ -619,7 +619,7 @@ function _hairpin(seq, i, j, temp, emap)::Float64
     # --- Initialize Energy ---
     d_g::Float64 = 0.0
 
-    if !isnothing(emap.TRI_TETRA_LOOPS) && haskey(emap.TRI_TETRA_LOOPS, hairpin)
+    if !isempty(emap.TRI_TETRA_LOOPS) && haskey(emap.TRI_TETRA_LOOPS, hairpin)
         # it's a pre-known hairpin with known value
         d_h, d_s = emap.TRI_TETRA_LOOPS[hairpin]
         d_g = _d_g(d_h, d_s, temp)
