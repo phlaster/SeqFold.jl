@@ -156,7 +156,7 @@ julia> tm_deg("NNNNNNN", conf_level=0.9) # 90% confidence interval
 
 julia> tm_deg("NNNNNNNNN");
 ┌ Warning: High degeneracy: 9 positions → 262144 variants. Computation may be slow.
-[...]
+└ @ SeqFold ~/work/SeqFold.jl/SeqFold.jl/src/tm.jl:210
 
 julia> tm_deg("NNNNNNNNN", high_deg_warn=1e6) # increase warning threshold
 (mean = 28.4, conf = (14.8, 42.2))
