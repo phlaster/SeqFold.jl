@@ -21,12 +21,14 @@
 * While the Python `seqfold` library provides a minimalist open-source alternative to proprietary UNAFold/mfold, it has several limitations:
   - Performance bottlenecks in the pure Python implementation;
   - Undocumented bugs in melting temperature calculations;
-  - Limited control over buffer conditions for $T_m$ calculations.
+  - Limited control over buffer conditions for $T_m$ calculations;
+  - No degenerate bases alowed in sequences.
 
 * `SeqFold.jl` addresses these issues, here are the key points:
   - For sequence folding the compatibility with the original `seqfold` library results is preserved (identical folding algorithm is used);
   - For accurate $T_m$ calculation buffer condition control is provided to user (physically impossible buffer conditions cause errors with meaningful error messages);
   - $T_m$ calculation results are validated against Biopython's reference implementation;
+  - Degenerate bases are allowed for $T_m$ calculations;
   - Significantly improved performance through Julia's JIT compilation. For oligs of 20 nt (a typical length for primer sequences) more than 4× speedup for `tm` and more than 20× speedup for `fold` is achieved:
     ![seqfold vs SeqFold.jl](docs/src/assets/benchmark.png)
 
@@ -93,6 +95,17 @@ MeltingConditions (custom)
 
 julia> tm(seq, conditions=custom_conds, Tris=50) # flexible adjustments
 68.4
+
+julia> degen_dna = "GRNCGTCGAATATGACGG"; # degenerate IUPAC bases are welcome here as well
+
+julia> tm_deg(degen_dna, conf_level=0.5) # set % of non-degen tm-s to fit within conf. interval
+(mean = 59.9, conf = (59.7, 60.1))
+
+julia> tm_deg(degen_dna) # 0.9 is the default `conf_level`
+(mean = 59.9, conf = (56.9, 63.0))
+
+julia> tm_deg(degen_dna, Mg=4) # all conditions modifications are applicable here as well
+(mean = 62.0, conf = (59.1, 65.0))
 ```
 
 ### Secondary Structure Prediction

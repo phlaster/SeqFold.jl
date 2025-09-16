@@ -2,6 +2,8 @@ using SeqFold
 using Test
 using LinearAlgebra
 using Aqua
+using Logging
+using JET
 
 function _randna(n)
     String(rand("AGTC", n))
@@ -51,6 +53,10 @@ end
 
 @testset "Aqua.jl" begin
     Aqua.test_all(SeqFold)
+end
+
+@testset "JET.jl" begin
+    JET.test_package(SeqFold; target_defined_modules = true)
 end
 
 @testset "tm.jl" begin
@@ -152,6 +158,218 @@ end
                 end
             end
         end
+    end
+
+    @testset "tm_deg" begin
+        for _ in 1:150
+            seq = _randna(rand(2:25))
+            
+            # Non-degenerate sequence tests
+            result = tm_deg(seq)
+            t = tm(seq)
+            @test result.mean == t
+            @test result.conf == (t, t)
+            
+            # For each degenerate nucleotide, verify tm_deg.mean equals the average of all possible variants
+            # R = A/G (2 variants)
+            seq_R = seq * "R"
+            T_a, T_g = tm(seq * "A"), tm(seq * "G")
+            expected_R = (T_a + T_g) / 2
+            result_R = tm_deg(seq_R)
+            @test result_R.mean ≈ expected_R atol=0.1
+            @test result_R.conf == (min(T_a, T_g), max(T_a, T_g))  # For binary degeneracy, interval spans all values
+            
+            # Y = C/T (2 variants)
+            seq_Y = seq * "Y"
+            T_c, T_t = tm(seq * "C"), tm(seq * "T")
+            expected_Y = (T_c + T_t) / 2
+            result_Y = tm_deg(seq_Y)
+            @test result_Y.mean ≈ expected_Y atol=0.1
+            @test result_Y.conf == (min(T_c, T_t), max(T_c, T_t))
+            
+            # S = C/G (2 variants)
+            seq_S = seq * "S"
+            T_c, T_g = tm(seq * "C"), tm(seq * "G")
+            expected_S = (T_c + T_g) / 2
+            result_S = tm_deg(seq_S)
+            @test result_S.mean ≈ expected_S atol=0.1
+            @test result_S.conf == (min(T_c, T_g), max(T_c, T_g))
+            
+            # W = A/T (2 variants)
+            seq_W = seq * "W"
+            T_a, T_t = tm(seq * "A"), tm(seq * "T")
+            expected_W = (T_a + T_t) / 2
+            result_W = tm_deg(seq_W)
+            @test result_W.mean ≈ expected_W atol=0.1
+            @test result_W.conf == (min(T_a, T_t), max(T_a, T_t))
+            
+            # K = G/T (2 variants)
+            seq_K = seq * "K"
+            T_g, T_t = tm(seq * "G"), tm(seq * "T")
+            expected_K = (T_g + T_t) / 2
+            result_K = tm_deg(seq_K)
+            @test result_K.mean ≈ expected_K atol=0.1
+            @test result_K.conf == (min(T_g, T_t), max(T_g, T_t))
+            
+            # M = A/C (2 variants)
+            seq_M = seq * "M"
+            T_a, T_c = tm(seq * "A"), tm(seq * "C")
+            expected_M = (T_a + T_c) / 2
+            result_M = tm_deg(seq_M)
+            @test result_M.mean ≈ expected_M atol=0.1
+            @test result_M.conf == (min(T_a, T_c), max(T_a, T_c))
+            
+            # B = C/G/T (3 variants)
+            seq_B = seq * "B"
+            T_c, T_g, T_t = tm(seq * "C"), tm(seq * "G"), tm(seq * "T")
+            expected_B = (T_c + T_g + T_t) / 3
+            result_B = tm_deg(seq_B)
+            @test result_B.mean ≈ expected_B atol=0.1
+            @test length([x for x in [T_c, T_g, T_t] if result_B.conf[1] <= x <= result_B.conf[2]]) == 3  # All values in interval
+            
+            # D = A/G/T (3 variants)
+            seq_D = seq * "D"
+            T_a, T_g, T_t = tm(seq * "A"), tm(seq * "G"), tm(seq * "T")
+            expected_D = (T_a + T_g + T_t) / 3
+            result_D = tm_deg(seq_D)
+            @test result_D.mean ≈ expected_D atol=0.1
+            @test length([x for x in [T_a, T_g, T_t] if result_D.conf[1] <= x <= result_D.conf[2]]) == 3
+            
+            # H = A/C/T (3 variants)
+            seq_H = seq * "H"
+            T_a, T_c, T_t = tm(seq * "A"), tm(seq * "C"), tm(seq * "T")
+            expected_H = (T_a + T_c + T_t) / 3
+            result_H = tm_deg(seq_H)
+            @test result_H.mean ≈ expected_H atol=0.1
+            @test length([x for x in [T_a, T_c, T_t] if result_H.conf[1] <= x <= result_H.conf[2]]) == 3
+            
+            # V = A/C/G (3 variants)
+            seq_V = seq * "V"
+            T_a, T_c, T_g = tm(seq * "A"), tm(seq * "C"), tm(seq * "G")
+            expected_V = (T_a + T_c + T_g) / 3
+            result_V = tm_deg(seq_V)
+            @test result_V.mean ≈ expected_V atol=0.1
+            @test length([x for x in [T_a, T_c, T_g] if result_V.conf[1] <= x <= result_V.conf[2]]) == 3
+            
+            # N = A/C/G/T (4 variants)
+            seq_N = seq * "N"
+            T_a, T_c, T_g, T_t = tm(seq * "A"), tm(seq * "C"), tm(seq * "G"), tm(seq * "T")
+            expected_N = (T_a + T_c + T_g + T_t) / 4
+            result_N = tm_deg(seq_N)
+            @test result_N.mean ≈ expected_N atol=0.1
+            @test length([x for x in [T_a, T_c, T_g, T_t] if result_N.conf[1] <= x <= result_N.conf[2]]) == 4
+            
+            # Custom confidence level tests
+            result_N_50 = tm_deg(seq_N, conf_level=0.5)
+            values = sort([T_a, T_c, T_g, T_t])
+            @test result_N_50.conf[1] .≈ values[2] atol=0.1
+            @test result_N_50.conf[2] .≈ values[3] atol=0.1
+            
+            result_N_90 = tm_deg(seq_N, conf_level=0.9)
+            @test result_N_90.conf[1] ≤ values[1] + 0.1
+            @test result_N_90.conf[2] ≥ values[4] - 0.1
+        end
+        
+        # Edge cases
+        @test_throws ArgumentError tm_deg("")
+        @test_throws ArgumentError tm_deg("N")
+        
+        # Warning behavior validation
+        # Should trigger warning for 1024 variants (4^5)
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NNNNN", high_deg_warn=1000)
+        end
+        @test !isempty(String(take!(io)))
+        
+        # Should NOT trigger warning for 16 variants (4^2)
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NN", high_deg_warn=1000)
+        end
+        @test isempty(String(take!(io)))
+        
+        # Should NOT trigger when high_deg_warn=0
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NNNNN", high_deg_warn=0)
+        end
+        @test isempty(String(take!(io)))
+
+        # Should NOT trigger when high_deg_warn=false
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NNNNN", high_deg_warn=false)
+        end
+        @test isempty(String(take!(io)))
+        
+        # IUPAC code validation (all 11 degenerate codes)
+        iupac_tests = [
+            ('R', "AG", "ATGCATGCR"),
+            ('Y', "CT", "ATGCATGCY"),
+            ('S', "CG", "ATGCATGCS"),
+            ('W', "AT", "ATGCATGCW"),
+            ('K', "GT", "ATGCATGCK"),
+            ('M', "AC", "ATGCATGCM"),
+            ('B', "CGT", "ATGCATGCB"),
+            ('D', "AGT", "ATGCATGCD"),
+            ('H', "ACT", "ATGCATGCH"),
+            ('V', "ACG", "ATGCATGCV"),
+            ('N', "ACGT", "ATGCATGCN")
+        ]
+        
+        for (code, bases, seq) in iupac_tests
+            variants = [replace(seq, string(code) => string(b)) for b in bases]
+            expected_avg = sum(tm(v) for v in variants) / length(bases)
+            result = tm_deg(seq)
+            @test result.mean ≈ expected_avg atol=0.1
+            
+            # Verify all variants are within the confidence interval
+            tm_vals = sort([tm(v) for v in variants])
+            @test result.conf[1] ≤ tm_vals[1] + 0.1
+            @test result.conf[2] ≥ tm_vals[end] - 0.1
+            
+            # For binary codes, check exact interval
+            if length(bases) == 2
+                @test result.conf == (min(tm_vals...), max(tm_vals...))
+            end
+        end
+        
+        # Confidence level validation
+        seq = "ATGCATGCR"  # R = A/G (2 variants)
+        result_95 = tm_deg(seq, conf_level=0.95)
+        result_50 = tm_deg(seq, conf_level=0.5)
+        
+        # For 2 variants, all confidence levels should give the same interval
+        @test result_95.conf == result_50.conf
+        
+        seq = "ATGCATGCN"  # N = A/C/G/T (4 variants)
+        result_95 = tm_deg(seq, conf_level=0.95)
+        result_50 = tm_deg(seq, conf_level=0.5)
+        
+        # 50% interval should be narrower than 95% interval
+        @test result_50.conf[2] - result_50.conf[1] ≤ result_95.conf[2] - result_95.conf[1]
+        
+        # Invalid confidence level tests
+        @test_throws ArgumentError tm_deg("ATGC", conf_level=-0.1)
+        @test_throws ArgumentError tm_deg("ATGC", conf_level=1.1)
+        
+        # Test confidence interval accuracy with known distribution
+        seq = "NNN"  # 64 variants
+        result = tm_deg(seq, conf_level=0.9)
+        tm_vals = [tm("$(a)$(b)$(c)") for a in "ACGT" for b in "ACGT" for c in "ACGT"]
+        sorted_tm = sort(tm_vals)
+        
+        # For 64 variants, 90% interval should contain 58 values (64 * 0.9 = 57.6 → 58)
+        lower_bound, upper_bound = result.conf
+        count_in_interval = count(x -> lower_bound ≤ x ≤ upper_bound, tm_vals)
+        @test isapprox(count_in_interval / 64, 0.9, atol=0.05)  # Allow small rounding error
+        
+        # Test 50% confidence interval with known distribution
+        result_50 = tm_deg(seq, conf_level=0.5)
+        lower_50, upper_50 = result_50.conf
+        count_in_50 = count(x -> lower_50 ≤ x ≤ upper_50, tm_vals)
+        @test isapprox(count_in_50 / 64, 0.5, atol=0.05)
     end
 
     @testset "gc_cache" begin

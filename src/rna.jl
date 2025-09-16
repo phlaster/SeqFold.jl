@@ -791,5 +791,5 @@ const RNA_ENERGIES = Energies(
     RNA_INTERNAL_MM,
     RNA_NN,
     RNA_TERMINAL_MM,
-    nothing,
+    BpEnergy(),
 )

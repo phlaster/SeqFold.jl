@@ -613,13 +613,13 @@ function _hairpin(seq, i, j, temp, emap)::Float64
     # --- Terminal Pair Check ---
     if emap.COMPLEMENT[first(hairpin)] != last(hairpin)
         # not known terminal pair, nothing to close "hairpin"
-        throw(RuntimeError("Hairpin terminal pair does not match complement rules."))
+        throw(ErrorException("Hairpin terminal pair does not match complement rules."))
     end
 
     # --- Initialize Energy ---
     d_g::Float64 = 0.0
 
-    if !isnothing(emap.TRI_TETRA_LOOPS) && haskey(emap.TRI_TETRA_LOOPS, hairpin)
+    if !isempty(emap.TRI_TETRA_LOOPS) && haskey(emap.TRI_TETRA_LOOPS, hairpin)
         # it's a pre-known hairpin with known value
         d_h, d_s = emap.TRI_TETRA_LOOPS[hairpin]
         d_g = _d_g(d_h, d_s, temp)
@@ -670,7 +670,7 @@ function _bulge(seq, i, i1, j, j1, temp, emap)::Float64
     # --- Calculate Bulge Loop Length ---
     loop_len = max(i1 - i - 1, j - j1 - 1)
     if loop_len <= 0
-       throw(RuntimeError("Bulge loop length must be positive."))
+       throw(ErrorException("Bulge loop length must be positive."))
     end
 
     # --- Initialize Energy ---
@@ -733,7 +733,7 @@ function _internal_loop(seq, i, i1, j, j1, temp, emap)::Float64
 
     # --- Validate Loop Sizes ---
     if loop_left < 1 || loop_right < 1
-        throw(RuntimeError("Internal loop sides must each have at least one unpaired base."))
+        throw(ErrorException("Internal loop sides must each have at least one unpaired base."))
     end
 
     # --- Special Case: Single Base Mismatch (1x1 Internal Loop) ---

@@ -13,7 +13,7 @@ mutable struct Energies
     INTERNAL_MM::BpEnergy
     NN::BpEnergy
     TERMINAL_MM::BpEnergy
-    TRI_TETRA_LOOPS::Union{Nothing, BpEnergy}
+    TRI_TETRA_LOOPS::BpEnergy
     
     function Energies(
         bulge_loops::LoopEnergy,
@@ -25,7 +25,7 @@ mutable struct Energies
         internal_mm::BpEnergy,
         nn::BpEnergy,
         terminal_mm::BpEnergy,
-        tri_tetra_loops::Union{Nothing, BpEnergy}=nothing
+        tri_tetra_loops::BpEnergy=BpEnergy()
     )
         return new(
             bulge_loops,
