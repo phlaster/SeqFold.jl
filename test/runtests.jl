@@ -2,6 +2,7 @@ using SeqFold
 using Test
 using LinearAlgebra
 using Aqua
+using Logging
 
 function _randna(n)
     String(rand("AGTC", n))
@@ -151,6 +152,121 @@ end
                     @test isapprox(calc_tm, expected_tm; atol=abs_tolerance)
                 end
             end
+        end
+    end
+
+    @testset "tm_deg" begin
+        for _ in 1:150
+            seq = _randna(rand(2:25))
+            @test tm_deg(seq) == tm(seq)
+            
+            # For each degenerate nucleotide, verify tm_deg equals the average of all possible variants
+            # R = A/G (2 variants)
+            seq_R = seq * "R"
+            expected_R = (tm(seq * "A") + tm(seq * "G")) / 2
+            @test tm_deg(seq_R) ≈ expected_R atol=0.1
+            
+            # Y = C/T (2 variants)
+            seq_Y = seq * "Y"
+            expected_Y = (tm(seq * "C") + tm(seq * "T")) / 2
+            @test tm_deg(seq_Y) ≈ expected_Y atol=0.1
+            
+            # S = C/G (2 variants)
+            seq_S = seq * "S"
+            expected_S = (tm(seq * "C") + tm(seq * "G")) / 2
+            @test tm_deg(seq_S) ≈ expected_S atol=0.1
+            
+            # W = A/T (2 variants)
+            seq_W = seq * "W"
+            expected_W = (tm(seq * "A") + tm(seq * "T")) / 2
+            @test tm_deg(seq_W) ≈ expected_W atol=0.1
+            
+            # K = G/T (2 variants)
+            seq_K = seq * "K"
+            expected_K = (tm(seq * "G") + tm(seq * "T")) / 2
+            @test tm_deg(seq_K) ≈ expected_K atol=0.1
+            
+            # M = A/C (2 variants)
+            seq_M = seq * "M"
+            expected_M = (tm(seq * "A") + tm(seq * "C")) / 2
+            @test tm_deg(seq_M) ≈ expected_M atol=0.1
+            
+            # B = C/G/T (3 variants)
+            seq_B = seq * "B"
+            expected_B = (tm(seq * "C") + tm(seq * "G") + tm(seq * "T")) / 3
+            @test tm_deg(seq_B) ≈ expected_B atol=0.1
+            
+            # D = A/G/T (3 variants)
+            seq_D = seq * "D"
+            expected_D = (tm(seq * "A") + tm(seq * "G") + tm(seq * "T")) / 3
+            @test tm_deg(seq_D) ≈ expected_D atol=0.1
+            
+            # H = A/C/T (3 variants)
+            seq_H = seq * "H"
+            expected_H = (tm(seq * "A") + tm(seq * "C") + tm(seq * "T")) / 3
+            @test tm_deg(seq_H) ≈ expected_H atol=0.1
+            
+            # V = A/C/G (3 variants)
+            seq_V = seq * "V"
+            expected_V = (tm(seq * "A") + tm(seq * "C") + tm(seq * "G")) / 3
+            @test tm_deg(seq_V) ≈ expected_V atol=0.1
+            
+            # N = A/C/G/T (4 variants)
+            seq_N = seq * "N"
+            expected_N = (tm(seq * "A") + tm(seq * "C") + tm(seq * "G") + tm(seq * "T")) / 4
+            @test tm_deg(seq_N) ≈ expected_N atol=0.1
+        end
+        
+        @test_throws ArgumentError tm_deg("")
+        @test_throws ArgumentError tm_deg("N")
+        
+        # Should trigger warning for 1024 variants (4^5)
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NNNNN", high_deg_warn=1000)
+        end
+        @test !isempty(String(take!(io)))
+        
+        # Should NOT trigger warning for 16 variants (4^2)
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NN", high_deg_warn=1000)
+        end
+        @test isempty(String(take!(io)))
+        
+        # Should NOT trigger when high_deg_warn=0
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NNNNN", high_deg_warn=0)
+        end
+        @test isempty(String(take!(io)))
+
+        # Should NOT trigger when high_deg_warn=false
+        io = IOBuffer()
+        with_logger(SimpleLogger(io)) do
+            tm_deg("NNNNN", high_deg_warn=false)
+        end
+        @test isempty(String(take!(io)))
+        
+        # IUPAC code validation (all 11 degenerate codes)
+        iupac_tests = [
+            ('R', "AG", "ATGCATGCR"),
+            ('Y', "CT", "ATGCATGCY"),
+            ('S', "CG", "ATGCATGCS"),
+            ('W', "AT", "ATGCATGCW"),
+            ('K', "GT", "ATGCATGCK"),
+            ('M', "AC", "ATGCATGCM"),
+            ('B', "CGT", "ATGCATGCB"),
+            ('D', "AGT", "ATGCATGCD"),
+            ('H', "ACT", "ATGCATGCH"),
+            ('V', "ACG", "ATGCATGCV"),
+            ('N', "ACGT", "ATGCATGCN")
+        ]
+        
+        for (code, bases, seq) in iupac_tests
+            variants = [replace(seq, string(code) => string(b)) for b in bases]
+            expected_avg = sum(tm(v) for v in variants) / length(bases)
+            @test tm_deg(seq) ≈ expected_avg atol=0.1
         end
     end
 

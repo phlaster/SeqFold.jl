@@ -91,6 +91,126 @@ function tm(seq::AbstractString; conditions=:pcr, kwargs...)
 end
 
 """
+    tm_deg(seq; conditions=:pcr, high_deg_warn=10^5, kwargs...) -> Float64
+
+Calculate the average melting temperature (Tm °C) for a degenerate DNA sequence by enumerating all possible 
+non-degenerate variants and averaging their melting temperatures using nearest-neighbor thermodynamics.
+
+This function handles IUPAC ambiguity codes by generating all possible non-degenerate 
+sequences, computing [`tm`](@ref) for each, and returning the average. A warning is issued when the number of 
+variants exceeds `high_deg_warn` as computation may become slow for highly degenerate sequences.
+
+# Arguments
+- `seq::AbstractString`: Degenerate DNA sequence (with IUPAC ambiguity codes);
+- `conditions`: Buffer conditions specification (see [`tm`](@ref) for detailed review);
+- `high_deg_warn`: Threshold for warning about high degeneracy (number of variants). Set non positive or `false` to disable;
+- `kwargs...`: Additional parameters to override preset conditions in place.
+
+# Examples
+```jldoctest
+julia> tm_deg("GGGGGG") == tm("GGGGGG") # equal results for non degenerate sequences
+true
+
+julia> T_w = tm_deg("GGGGGW") # W for A or T
+10.5
+
+julia> T_a, T_t = tm("GGGGGA"), tm("GGGGGT")
+(10.0, 11.0)
+
+julia> isapprox(T_w, (T_a+T_t)/2, atol=0.1)
+true
+
+julia> tm_deg("GGGGGW", conditions=:std) # same presets as for `tm`
+-3.4
+
+julia> tm_deg("GGGGGW", Mg=5) # adjust conditions in-place
+16.2
+
+julia> tm_deg("NNNNNNNNN")
+┌ Warning: High degeneracy: 9 positions → 262144 variants. Computation may be slow.
+[...]
+
+julia> tm_deg("NNNNNNNNN", high_deg_warn=1e6) # increase warning threshold
+28.4
+
+julia> tm_deg("NNNNNNNNN", high_deg_warn=false) # disable warning entirely
+28.4
+```
+# See also
+[`tm`](@ref), [`MeltingConditions`](@ref)
+"""
+function tm_deg(seq::AbstractString; conditions=:pcr, high_deg_warn=10^5, kwargs...)
+    base_cond = MeltingConditions(conditions)
+    cond = isempty(kwargs) ? base_cond : MeltingConditions(base_cond; kwargs...)
+
+    seq = uppercase(seq)
+    allowed_chars = Set("ACGTMRWSYKVHDBN")
+    seq_chars = Set(seq)
+    if !issubset(seq_chars, allowed_chars)
+        throw(ArgumentError("Input sequence contains unallowed characters: $(join(collect(setdiff(seq_chars, allowed_chars)), ", "))"))
+    end
+
+    iupac_map = Dict(
+        'A'=>"A",  'C'=>"C",  'G'=>"G",  'T'=>"T",
+        'R'=>"AG", 'Y'=>"CT", 'S'=>"CG", 'W'=>"AT",
+        'K'=>"GT", 'M'=>"AC", 'B'=>"CGT",'D'=>"AGT",
+        'H'=>"ACT",'V'=>"ACG",'N'=>"ACGT"
+    )
+
+    n_degenerate = 0
+    n_possible = BigInt(1)
+    iupac_counts = Dict(
+        'A' => 1, 'C' => 1, 'G' => 1, 'T' => 1,
+        'M' => 2, 'R' => 2, 'W' => 2, 'S' => 2, 'Y' => 2, 'K' => 2,
+        'V' => 3, 'H' => 3, 'D' => 3, 'B' => 3, 'N' => 4
+    )
+    
+    @simd for char in seq
+        if char in "MRWSYKVHDBN"
+            n_degenerate += 1
+        end
+        n_possible *= iupac_counts[char]
+    end
+
+    if n_possible == 1
+        return tm(seq; conditions=cond)
+    elseif n_possible > high_deg_warn && high_deg_warn > 0
+        @warn "High degeneracy: $n_degenerate positions → $n_possible variants. Computation may be slow."
+    end
+
+    seq_len = length(seq)
+    options = Vector{String}(undef, seq_len)
+    lens = Vector{Int}(undef, seq_len)
+    for (i, c) in enumerate(seq)
+        options[i] = iupac_map[c]
+        lens[i] = length(options[i])
+    end
+
+    indices = ones(Int, seq_len)
+    buffer = Vector{Char}(undef, seq_len)
+    sum_temp = 0.0
+
+    @inbounds for _ in 1:n_possible
+        @simd for j in 1:seq_len
+            buffer[j] = options[j][indices[j]]
+        end
+        sum_temp += tm(String(buffer); conditions=cond)
+        
+        pos = seq_len
+        while pos > 0
+            indices[pos] += 1
+            if indices[pos] <= lens[pos]
+                break
+            end
+            indices[pos] = 1
+            pos -= 1
+        end
+    end
+
+    return round(Float64(sum_temp / n_possible), digits=1)
+end
+
+"""
     SeqFold.tm_cache(seq1, seq2; conditions=:pcr, kwargs...) -> Matrix{Float64}
     SeqFold.tm_cache(seq; conditions=:pcr, kwargs...) -> Matrix{Float64}
 

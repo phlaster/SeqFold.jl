@@ -11,7 +11,7 @@ $(isnothing(get(ENV, "CI", nothing)) ? ("\n" * "Local path: " * pathof(SeqFold))
 """
 SeqFold
 
-export tm, MeltingConditions
+export tm, tm_deg, MeltingConditions
 export dg, fold, dot_bracket
 public complement, Structure, tm_cache, gc_cache, dg_cache
 
