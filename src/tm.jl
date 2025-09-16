@@ -192,22 +192,22 @@ function tm_deg(seq::AbstractString;
     end
 
     n_degenerate = 0
-    n_possible = BigInt(1)
+    n_nondeg = BigInt(1)
     
     @simd for char in seq
         if char in "MRWSYKVHDBN"
             n_degenerate += 1
         end
-        n_possible *= IUPAC_COUNTS[char]
+        n_nondeg *= IUPAC_COUNTS[char]
     end
 
-    if n_possible == 1
+    if n_nondeg == 1
         t = tm(seq; conditions=cond)
         return (mean=t, conf=(t, t))
     end
     
-    if n_possible > high_deg_warn && high_deg_warn > 0
-        @warn "High degeneracy: $n_degenerate positions → $n_possible variants. Computation may be slow."
+    if n_nondeg > high_deg_warn && high_deg_warn > 0
+        @warn "High degeneracy: $n_degenerate positions → $n_nondeg variants. Computation may be slow."
     end
 
     seq_len = length(seq)
@@ -221,9 +221,9 @@ function tm_deg(seq::AbstractString;
     indices = ones(Int, seq_len)
     buffer = Vector{Char}(undef, seq_len)
     
-    tm_values = Vector{Float64}(undef, n_possible)
+    tm_values = Vector{Float64}(undef, n_nondeg)
 
-    @inbounds for i in 1:n_possible
+    @inbounds for i in 1:n_nondeg
         for j in 1:seq_len
             buffer[j] = options[j][indices[j]]
         end
@@ -240,20 +240,19 @@ function tm_deg(seq::AbstractString;
         end
     end
 
-    mean_tm = Float64(sum(tm_values) / n_possible)
+    mean_tm = Float64(sum(tm_values) / n_nondeg)
     
     low_percentile = (1 - conf_level) / 2
     high_percentile = 1 - low_percentile
     
-    sorted_tm = sort(tm_values)
-    n = length(sorted_tm)
+    sort!(tm_values)
     
-    low_idx = max(1, min(n, round(Int, low_percentile * (n-1)) + 1))
-    high_idx = max(1, min(n, round(Int, high_percentile * (n-1)) + 1))
+    low_idx = max(1, min(n_nondeg, round(Int, low_percentile * (n_nondeg-1)) + 1))
+    high_idx = max(1, min(n_nondeg, round(Int, high_percentile * (n_nondeg-1)) + 1))
     
     conf_interval = (
-        round(sorted_tm[low_idx], digits=1), 
-        round(sorted_tm[high_idx], digits=1)
+        round(tm_values[low_idx], digits=1), 
+        round(tm_values[high_idx], digits=1)
     )
     
     return (
