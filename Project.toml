@@ -1,11 +1,11 @@
 name = "SeqFold"
 uuid = "b3b2a78d-ef5a-44e0-bc1e-af93888afa44"
 authors = ["phlaster <phlaster@users.noreply.github.com>"]
-version = "0.4.0"
+version = "0.3.1"
 
 [deps]
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
-Printf = "1.11.0"
-julia = "1.10"
+Printf = "^1.10"
+julia = "^1.10"
