@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Melting Temperature · SeqFold.jl</title><meta name="title" content="Melting Temperature · SeqFold.jl"/><meta property="og:title" content="Melting Temperature · SeqFold.jl"/><meta property="twitter:title" content="Melting Temperature · SeqFold.jl"/><meta name="description" content="Documentation for SeqFold.jl."/><meta property="og:description" content="Documentation for SeqFold.jl."/><meta property="twitter:description" content="Documentation for SeqFold.jl."/><meta property="og:url" content="https://phlaster.github.io/SeqFold.jl/tm/"/><meta property="twitter:url" content="https://phlaster.github.io/SeqFold.jl/tm/"/><link rel="canonical" href="https://phlaster.github.io/SeqFold.jl/tm/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="SeqFold.jl logo"/></a><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Melting Temperature</a><ul class="internal"><li><a class="tocitem" href="#Showcase"><span>Showcase</span></a></li><li><a class="tocitem" href="#Public-API"><span>Public API</span></a></li><li><a class="tocitem" href="#Implementation-Details"><span>Implementation Details</span></a></li></ul></li><li><a class="tocitem" href="../fold/">Sequence Folding</a></li><li><a class="tocitem" href="../juliacall/">For Python users</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Melting Temperature</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Melting Temperature</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/phlaster/SeqFold.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/phlaster/SeqFold.jl/blob/master/docs/src/tm.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Melting-Temperature-Calculation"><a class="docs-heading-anchor" href="#Melting-Temperature-Calculation">Melting Temperature Calculation</a><a id="Melting-Temperature-Calculation-1"></a><a class="docs-heading-anchor-permalink" href="#Melting-Temperature-Calculation" title="Permalink"></a></h1><p><code>SeqFold.jl</code> provides functions for calculating DNA melting temperatures using nearest-neighbor thermodynamics.</p><h2 id="Showcase"><a class="docs-heading-anchor" href="#Showcase">Showcase</a><a id="Showcase-1"></a><a class="docs-heading-anchor-permalink" href="#Showcase" title="Permalink"></a></h2><pre><code class="language-julia hljs">julia&gt; seq = &quot;GGGAGGTCAGCAAACCTGAACCTGTTGAGATGTTGACGTCAGGAAACCCT&quot;;
+
+julia&gt; tm(seq) # melting at PCR conditions, same as tm(seq, conditions=:pcr)
+80.4
+
+julia&gt; MeltingConditions(:pcr) # here they are as a preset inherited from seqfold library
+MeltingConditions (PCR preset)
+  • NEB PCR buffer conditions for Taq DNA Polymerase
+  • seq1 concentration: 250.0 nM (typical primer concentration)
+  • seq2 concentration: 0.0 nM (asymmetric PCR)
+  • Mg²⁺: 1.5 mM (optimal for Taq DNA Polymerase per NEB guidelines)
+  • K⁺: 50.0 mM
+  • Tris: 2.0 mM
+  • dNTPs: 0.2 mM
+
+julia&gt; tm(seq, Mg=5) # altering default conditions
+81.4
+
+julia&gt; MeltingConditions(:std) # second preset, inherited from seqfold library
+MeltingConditions (standard preset)
+  • Standard hybridization buffer
+  • seq1 concentration: 25.0 nM
+  • seq2 concentration: 25.0 nM
+  • Na⁺: 50.0 mM
+
+julia&gt; tm(seq, conditions=:std, Na=150) # altering chosen preset
+79.8
+
+julia&gt; custom_conds = MeltingConditions( # Specifying custom conditions
+       seq1_conc=30,seq2_conc=20,Na=5,K=5,Tris=15,Mg=0,dNTPs=0)
+MeltingConditions (custom)
+  • seq1 concentration: 30.0 nM
+  • seq2 concentration: 20.0 nM
+  • Na⁺: 5.0 mM
+  • K⁺: 5.0 mM
+  • Tris: 15.0 mM
+
+julia&gt; tm(seq, conditions=custom_conds, Tris=50) # flexible adjustments
+68.4
+
+julia&gt; degen_dna = &quot;GRNCGTCGAATATGACGG&quot;; # degenerate IUPAC bases are welcome here as well
+
+julia&gt; tm_deg(degen_dna, conf_level=0.5) # set % of non-degen tm-s to fit within conf. interval
+(mean = 59.9, conf = (59.7, 60.1))
+
+julia&gt; tm_deg(degen_dna) # 0.9 is the default `conf_level`
+(mean = 59.9, conf = (56.9, 63.0))
+
+julia&gt; tm_deg(degen_dna, Mg=4) # all conditions modifications are applicable here as well
+(mean = 62.0, conf = (59.1, 65.0))</code></pre><h2 id="Public-API"><a class="docs-heading-anchor" href="#Public-API">Public API</a><a id="Public-API-1"></a><a class="docs-heading-anchor-permalink" href="#Public-API" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SeqFold.tm" href="#SeqFold.tm"><code>SeqFold.tm</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">tm(seq1, seq2; conditions=:pcr, kwargs...) -&gt; Float64
+tm(seq; conditions=:pcr, kwargs...)  -&gt; Float64</code></pre><p>Calculate melting temperature (Tm °C) for DNA duplex formation using nearest-neighbor thermodynamics.</p><p><strong>Arguments</strong></p><ul><li><code>seq1::AbstractString</code>: DNA sequence;</li><li><code>seq2::AbstractString</code>: Another DNA sequence, must be the same length as <code>seq1</code>;</li><li><code>seq::AbstractString</code>: Single DNA sequence to be matched with its exact complement;</li><li><code>conditions</code>: Buffer conditions specification (see below);</li><li><code>kwargs...</code>: Additional parameters to override preset conditions in place.</li></ul><p><strong>Conditions Specification</strong></p><p>The <code>conditions</code> parameter can be:</p><ul><li><code>:pcr</code> (default) or <code>:std</code>: Use preset conditions;</li><li><code>MeltingConditions</code> object: Custom conditions (for more info see: <a href="#SeqFold.MeltingConditions"><code>MeltingConditions</code></a>);</li><li><code>NTuple{7, Float64}</code>: <code>(seq1_conc, seq2_conc, Na, K, Tris, Mg, dNTPs)</code>;</li><li><code>NamedTuple</code> with condition fields.</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; tm(&quot;GGGGGG&quot;)
+15.5
+
+julia&gt; tm(&quot;GGGGGG&quot;, conditions=:pcr)
+15.5
+
+julia&gt; tm(&quot;GGGGGG&quot;, Mg=10)
+23.0
+
+julia&gt; tm(&quot;GGGGGG&quot;, conditions=:std)
+2.6
+
+julia&gt; tm(&quot;GGGGGG&quot;, conditions=:std, Na=100)
+5.1
+
+julia&gt; tm(&quot;GGGGGG&quot;, conditions=MeltingConditions(150, 150, 20, 0, 0, 10, 0))
+16.8
+
+julia&gt; tm(&quot;ACCCCC&quot;, &quot;GGGGGG&quot;)
+6.2</code></pre><p><strong>Implementation</strong></p><p>The calculation uses nearest-neighbor thermodynamic parameters from related literature (follow links below to see sources), accounting for initialization terms, nearest-neighbor pairs, and terminal mismatches when present.</p><p><strong>See also</strong></p><p><a href="#SeqFold.MeltingConditions"><code>MeltingConditions</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/phlaster/SeqFold.jl/blob/8fcd2bfffc99a19bc5b3b6579180d21f790c9997/src/tm.jl#L13-L62">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SeqFold.tm_deg" href="#SeqFold.tm_deg"><code>SeqFold.tm_deg</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">tm_deg(seq; conditions=:pcr, high_deg_warn=10^5, conf_level=0.9, kwargs...) -&gt; NamedTuple</code></pre><p>Calculate statistics of melting temperature (Tm °C) for a degenerate DNA sequence by enumerating all possible  non-degenerate variants and computing their melting temperatures using nearest-neighbor thermodynamics.</p><p>This function handles IUPAC ambiguity codes by generating all possible non-degenerate  sequences, computing <a href="#SeqFold.tm"><code>tm</code></a> for each, and returning both the average temperature and a confidence interval  that contains <code>conf_level</code> proportion of variants. A warning is issued when the number of  variants exceeds <code>high_deg_warn</code> as computation may become slow for highly degenerate sequences.</p><p><strong>Arguments</strong></p><ul><li><code>seq::AbstractString</code>: Degenerate DNA sequence (with IUPAC ambiguity codes);</li><li><code>conditions</code>: Buffer conditions specification (see <a href="#SeqFold.tm"><code>tm</code></a> for detailed review);</li><li><code>high_deg_warn</code>: Threshold for warning about high degeneracy (number of variants). Set non-positive or <code>false</code> to disable;</li><li><code>conf_level::Float64</code>: Confidence level <code>(0,1]</code> for the interval. For example, 0.95 means 95% of variants fall within the interval;</li><li><code>kwargs...</code>: Additional parameters to override preset conditions in place.</li></ul><p><strong>Returns</strong></p><p>A <code>NamedTuple</code> with fields:</p><ul><li><code>mean::Float64</code>: Average melting temperature across all variants (rounded to 1 decimal place)</li><li><code>conf::Tuple{Float64, Float64}</code>: Confidence interval bounds <code>(lower, upper)</code> containing <code>conf_level</code> proportion of variants</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; tm_deg(&quot;GGGGGG&quot;) # non-degenerate sequence
+(mean = 15.5, conf = (15.5, 15.5))
+
+julia&gt; result = tm_deg(&quot;GGGGGW&quot;) # W for A or T
+(mean = 10.5, conf = (10.0, 11.0))
+
+julia&gt; T_a, T_t = tm(&quot;GGGGGA&quot;), tm(&quot;GGGGGT&quot;)
+(10.0, 11.0)
+
+julia&gt; isapprox(result.mean, (T_a+T_t)/2, atol=0.1)
+true
+
+julia&gt; result.conf == (min(T_a, T_t), max(T_a, T_t)) # for binary degeneracy, interval spans all values
+true
+
+julia&gt; tm_deg(&quot;GGGGGW&quot;, conditions=:std) # standard conditions
+(mean = -3.4, conf = (-3.9, -2.9))
+
+julia&gt; tm_deg(&quot;GGGGGW&quot;, Mg=5) # adjust conditions in-place
+(mean = 16.2, conf = (15.7, 16.8))
+
+julia&gt; tm_deg(&quot;NNNNNNN&quot;, conf_level=0.5) # 50% confidence interval (middle 50% of variants)
+(mean = 11.3, conf = (4.8, 17.7))
+
+julia&gt; tm_deg(&quot;NNNNNNN&quot;, conf_level=0.9) # 90% confidence interval
+(mean = 11.3, conf = (-4.4, 27.1))
+
+julia&gt; tm_deg(&quot;NNNNNNNNN&quot;);
+┌ Warning: High degeneracy: 9 positions → 262144 variants. Computation may be slow.
+└ @ SeqFold ~/work/SeqFold.jl/SeqFold.jl/src/tm.jl:210
+
+julia&gt; tm_deg(&quot;NNNNNNNNN&quot;, high_deg_warn=1e6) # increase warning threshold
+(mean = 28.4, conf = (14.8, 42.2))
+
+julia&gt; tm_deg(&quot;NNNNNNNNN&quot;, high_deg_warn=false) # disable warning entirely
+(mean = 28.4, conf = (14.8, 42.2))</code></pre><p><strong>Note!</strong></p><p>Recommended for sequences with ≤5 degenerate positions; for higher degeneracy, computation becomes slow.</p><p><strong>See also</strong></p><p><a href="#SeqFold.tm"><code>tm</code></a>, <a href="#SeqFold.MeltingConditions"><code>MeltingConditions</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/phlaster/SeqFold.jl/blob/8fcd2bfffc99a19bc5b3b6579180d21f790c9997/src/tm.jl#L105-L173">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SeqFold.tm_cache" href="#SeqFold.tm_cache"><code>SeqFold.tm_cache</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SeqFold.tm_cache(seq1, seq2; conditions=:pcr, kwargs...) -&gt; Matrix{Float64}
+SeqFold.tm_cache(seq; conditions=:pcr, kwargs...) -&gt; Matrix{Float64}</code></pre><p>Compute a matrix of melting temperatures for all possible subsequences of a DNA sequence pair.</p><p><strong>Arguments</strong></p><ul><li><code>seq1::AbstractString</code>: DNA sequence;</li><li><code>seq2::AbstractString</code>: Another DNA sequence, must be the same length as <code>seq1</code>;</li><li><code>seq::AbstractString</code>: Single DNA sequence to be matched with its exact complement;</li><li><code>conditions</code>: Buffer conditions specification (see <code>tm</code> docstrings);</li><li><code>kwargs...</code>: Additional parameters to override preset conditions in place.</li></ul><p><strong>Returns</strong></p><p>A <code>Matrix{Float64}</code> where element <code>[i, j]</code> contains the melting temperature (in °C) of the subsequence from position <code>i</code> to position <code>j</code>, inclusive. Elements where <code>j &lt; i</code> contain <code>NaN</code> as they represent invalid ranges, and single-nucleotide subsequences also have <code>NaN</code> as they don&#39;t have meaningful Tm values.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; SeqFold.tm_cache(&quot;ATCC&quot;)
+4×4 Matrix{Float64}:
+ NaN  -212.6   -95.3   -48.6
+ NaN   NaN    -161.6   -82.7
+ NaN   NaN     NaN    -135.5
+ NaN   NaN     NaN     NaN
+
+julia&gt; SeqFold.tm_cache(&quot;AAGC&quot;, &quot;TTCG&quot;)
+4×4 Matrix{Float64}:
+ NaN  -204.8   -94.6   -40.3
+ NaN   NaN    -166.7   -72.9
+ NaN   NaN     NaN    -116.7
+ NaN   NaN     NaN     NaN
+
+julia&gt; SeqFold.tm_cache(&quot;AAGC&quot;, &quot;TTCG&quot;; conditions=:std)
+4×4 Matrix{Float64}:
+ NaN  -213.1  -109.3   -55.6
+ NaN   NaN    -177.9   -88.1
+ NaN   NaN     NaN    -129.8
+ NaN   NaN     NaN     NaN</code></pre><p><strong>Implementation</strong></p><p>The function uses dynamic programming to build a cache of Tm values for all subsequences. The algorithm has <code>O(n²)</code> time and space complexity, where <code>n</code> is the sequence length. This approach avoids redundant calculations when multiple Tm values for different subsequences are needed.</p><p><strong>See also</strong></p><p><a href="#SeqFold.tm"><code>tm</code></a>, <a href="#SeqFold.gc_cache"><code>SeqFold.gc_cache</code></a>, <a href="../fold/#SeqFold.dg_cache"><code>SeqFold.dg_cache</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/phlaster/SeqFold.jl/blob/8fcd2bfffc99a19bc5b3b6579180d21f790c9997/src/tm.jl#L264-L313">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SeqFold.MeltingConditions" href="#SeqFold.MeltingConditions"><code>SeqFold.MeltingConditions</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">MeltingConditions(seq1_conc, seq2_conc, Na, K, Tris, Mg, dNTPs)</code></pre><p>Represents buffer conditions for melting temperature calculation.</p><p><strong>Fields and Units</strong></p><ul><li><code>seq1_conc</code>, <code>seq2_conc</code>: Sequence concentrations in <strong>nM</strong> (nanomolar)</li><li><code>Na</code>, <code>K</code>, <code>Tris</code>, <code>Mg</code>, <code>dNTPs</code>: Buffer component concentrations in <strong>mM</strong> (millimolar)</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; MeltingConditions(:pcr)
+MeltingConditions (PCR preset)
+  • NEB PCR buffer conditions for Taq DNA Polymerase
+  • seq1 concentration: 250.0 nM (typical primer concentration)
+  • seq2 concentration: 0.0 nM (asymmetric PCR)
+  • Mg²⁺: 1.5 mM (optimal for Taq DNA Polymerase per NEB guidelines)
+  • K⁺: 50.0 mM
+  • Tris: 2.0 mM
+  • dNTPs: 0.2 mM
+
+julia&gt; MeltingConditions(:std)
+MeltingConditions (standard preset)
+  • Standard hybridization buffer
+  • seq1 concentration: 25.0 nM
+  • seq2 concentration: 25.0 nM
+  • Na⁺: 50.0 mM
+
+julia&gt; MeltingConditions(seq1_conc=10,seq2_conc=0,Na=0,K=0,Tris=10,Mg=0,dNTPs=0)
+MeltingConditions (custom)
+  • seq1 concentration: 10.0 nM
+  • seq2 concentration: 0.0 nM
+  • Tris: 10.0 mM
+
+julia&gt; MeltingConditions(10,0,0,0,0,5,0)
+MeltingConditions (custom)
+  • seq1 concentration: 10.0 nM
+  • seq2 concentration: 0.0 nM
+  • Mg²⁺: 5.0 mM (higher than NEB&#39;s recommended 1.5-2.0 mM range)
+
+julia&gt; MeltingConditions(seq1_conc=0,seq2_conc=0,Na=5,K=0,Tris=0,Mg=0,dNTPs=0)
+ERROR: ArgumentError: DNA concentration is too low!
+[...]
+
+julia&gt; MeltingConditions(seq1_conc=10,seq2_conc=10,Na=0,K=0,Tris=0,Mg=0,dNTPs=0)
+ERROR: ArgumentError: No cations for salt correction (Mg=0, Na=0, K=0, Tris=0)
+[...]</code></pre><p><strong>See also</strong></p><p><a href="#SeqFold.tm"><code>tm</code></a>, <a href="#SeqFold.tm_cache"><code>SeqFold.tm_cache</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/phlaster/SeqFold.jl/blob/8fcd2bfffc99a19bc5b3b6579180d21f790c9997/src/types.jl#L130-L182">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SeqFold.gc_cache" href="#SeqFold.gc_cache"><code>SeqFold.gc_cache</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SeqFold.gc_cache(seq) -&gt; Matrix{Float64}</code></pre><p>Compute a matrix of GC scores for all possible subsequences of a DNA sequence.</p><p>The resulting matrix has element <code>[i, j]</code> representing the GC score of the DNA subsequence from position <code>i</code> to position <code>j</code>. This cache enables efficient GC ratio calculations for various subsequences without redundant computations.</p><p><strong>Arguments</strong></p><ul><li><code>seq::AbstractString</code>: The DNA sequence to analyze</li></ul><p><strong>Returns</strong></p><p>A <code>Matrix{Float64}</code> where element <code>[i, j]</code> contains the GC ratio of the subsequence from position <code>i</code> to <code>j</code>. Elements where <code>j &lt; i</code> contain <code>NaN</code> as they represent invalid ranges.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; SeqFold.gc_cache(&quot;GGAA&quot;)
+4×4 Matrix{Float64}:
+   1.0    1.0    0.666667  0.5
+ NaN      1.0    0.5       0.333333
+ NaN    NaN      0.0       0.0
+ NaN    NaN    NaN         0.0
+
+julia&gt; SeqFold.gc_cache(&quot;GAAA&quot;)
+4×4 Matrix{Float64}:
+   1.0    0.5    0.333333  0.25
+ NaN      0.0    0.0       0.0
+ NaN    NaN      0.0       0.0
+ NaN    NaN    NaN         0.0
+
+julia&gt; SeqFold.gc_cache(&quot;ATA&quot;)
+3×3 Matrix{Float64}:
+   0.0    0.0  0.0
+ NaN      0.0  0.0
+ NaN    NaN    0.0</code></pre><p><strong>See also</strong></p><p><a href="#SeqFold.tm_cache"><code>SeqFold.tm_cache</code></a>, <a href="#SeqFold.tm"><code>tm</code></a>, <a href="../fold/#SeqFold.dg_cache"><code>SeqFold.dg_cache</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/phlaster/SeqFold.jl/blob/8fcd2bfffc99a19bc5b3b6579180d21f790c9997/src/tm.jl#L391-L432">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SeqFold.complement" href="#SeqFold.complement"><code>SeqFold.complement</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SeqFold.complement(seq)</code></pre><p>Compute the Watson-Crick complement of a DNA sequence.</p><p>This function converts each base in the input sequence to its complementary base, handling both uppercase and lowercase inputs. Non-standard bases (anything other than <code>&#39;A&#39;</code>, <code>&#39;T&#39;</code>, <code>&#39;C&#39;</code>, <code>&#39;G&#39;</code>) are converted to a period (<code>&#39;.&#39;</code>).</p><p><strong>Arguments</strong></p><ul><li><code>seq::AbstractString | AbstractVector{UInt8}</code>: A DNA sequence as either a string or raw byte representation.</li></ul><p><strong>Returns</strong></p><p>A new string (if input was a string) or vector of bytes (if input was bytes) representing the complementary DNA sequence.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; SeqFold.complement(&quot;ACGT&quot;)
+&quot;TGCA&quot;
+
+julia&gt; SeqFold.complement(&quot;ACGTacgt&quot;)
+&quot;TGCATGCA&quot;
+
+julia&gt; SeqFold.complement(&quot;ACGTN&quot;)
+&quot;TGCA.&quot;
+
+julia&gt; SeqFold.complement(&quot;XYZ&quot;)
+&quot;...&quot;
+
+julia&gt; SeqFold.complement(b&quot;ACGT&quot;)
+4-element Vector{UInt8}:
+ 0x54
+ 0x47
+ 0x43
+ 0x41
+
+julia&gt; String(SeqFold.complement(b&quot;ACGT&quot;))
+&quot;TGCA&quot;
+
+julia&gt; s = &quot;ACACTAC&quot;; SeqFold.complement(SeqFold.complement(s)) == s
+true</code></pre><p><strong>Notes</strong></p><ul><li>The function normalizes all output to uppercase bases.</li><li>For string inputs, the output is a string; for byte vector inputs, the output is a byte vector.</li><li>This is specifically designed for DNA sequences (not RNA, which would use U instead of T).</li><li>The complement of a complement returns the original sequence (except for non-standard bases which become &#39;.&#39;).</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/phlaster/SeqFold.jl/blob/8fcd2bfffc99a19bc5b3b6579180d21f790c9997/src/utils.jl#L75-L123">source</a></section></article><h2 id="Implementation-Details"><a class="docs-heading-anchor" href="#Implementation-Details">Implementation Details</a><a id="Implementation-Details-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-Details" title="Permalink"></a></h2><p>The calculation uses nearest-neighbor thermodynamic parameters from related literature, accounting for initialization terms, nearest-neighbor pairs, and terminal mismatches when present.</p><div class="admonition is-info" id="Note-1e5a2490f74c720c"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-1e5a2490f74c720c" title="Permalink"></a></header><div class="admonition-body"><p>For implementation details, see the source code documentation of the internal constants  <code>DNA_NN</code>, <code>DNA_INTERNAL_MM</code>, and <code>DNA_TERMINAL_MM</code>.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../fold/">Sequence Folding »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 17 September 2025 13:37">Wednesday 17 September 2025</span>. Using Julia version 1.11.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
