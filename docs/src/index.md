@@ -1,8 +1,4 @@
 # Home
-```@contents
-Pages = ["index.md", "tm.md", "fold.md", "juliacall.md"]
-Depth = 3
-```
 
 ## Introduction
 

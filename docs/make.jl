@@ -18,7 +18,9 @@ makedocs(;
         "Home" => "index.md",
         "Melting Temperature" => "tm.md",
         "Sequence Folding" => "fold.md",
+        "Other Functions" => "utils.md",
         "For Python users" => "juliacall.md",
+        "Sources and Links" => "links.md"
     ],
 )
 
