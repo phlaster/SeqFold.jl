@@ -126,7 +126,7 @@ A `NamedTuple` with fields:
 - `conf::Tuple{Float64, Float64}`: Confidence interval bounds `(lower, upper)` containing `conf_level` proportion of variants
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"└ @ SeqFold .*/src/tm.jl:\\d+"
 julia> tm_deg("GGGGGG") # non-degenerate sequence
 (mean = 15.5, conf = (15.5, 15.5))
 
