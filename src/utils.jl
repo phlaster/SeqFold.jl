@@ -55,37 +55,39 @@ _comp_dna(b::UInt8)::UInt8 =
     b == UInt8('c') ? UInt8('G') :
     b == UInt8('G') ? UInt8('C') :
     b == UInt8('g') ? UInt8('C') :
-    UInt8('.')
+    UInt8('N')
 
 const DNA_COMP_TABLE = collect(ntuple(i->_comp_dna(UInt8(i-1)), Val(256)))
 
-@inline function _comp_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8})
+@inline function _complement_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8})
     n = length(seq)
     @inbounds @simd for i in 1:n
-        out[i] = DNA_COMP_TABLE[ seq[i] + 1 ]
+        out[i] = DNA_COMP_TABLE[ seq[i] + 0x01 ]
     end
     return out
 end
 
-function complement(seq::AbstractVector{UInt8})
+function _complement_bytes(nucleotide::UInt8)
+    DNA_COMP_TABLE[nucleotide + 0x01]
+end 
+
+function _complement_bytes(seq::AbstractVector{UInt8})
     out = Vector{UInt8}(undef, length(seq))
-    return _comp_bytes!(out, seq)
+    return _complement_bytes!(out, seq)
 end
 
+function complement(nucleotide::AbstractChar)
+    Char(_complement_bytes(UInt8(nucleotide)))
+end
+
+
 """
-    SeqFold.complement(seq)
+    SeqFold.complement(::AbstractString) -> String
+    SeqFold.complement(::AbstractChar) -> Char
 
-Compute the Watson-Crick complement of a DNA sequence.
-
-This function converts each base in the input sequence to its complementary base,
-handling both uppercase and lowercase inputs. Non-standard bases (anything other than `'A'`, `'T'`, `'C'`, `'G'`)
-are converted to a period (`'.'`).
-
-# Arguments
-- `seq::AbstractString | AbstractVector{UInt8}`: A DNA sequence as either a string or raw byte representation.
-
-# Returns
-A new string (if input was a string) or vector of bytes (if input was bytes) representing the complementary DNA sequence.
+Compute the Watson-Crick all uppercase complement of a DNA sequence.
+Non-standard bases (anything other than `'A'`, `'T'`, `'C'`, `'G'`)
+are converted to `'N'`.
 
 # Examples
 ```jldoctest
@@ -96,32 +98,75 @@ julia> SeqFold.complement("ACGTacgt")
 "TGCATGCA"
 
 julia> SeqFold.complement("ACGTN")
-"TGCA."
+"TGCAN"
 
 julia> SeqFold.complement("XYZ")
-"..."
+"NNN"
 
-julia> SeqFold.complement(b"ACGT")
-4-element Vector{UInt8}:
- 0x54
- 0x47
- 0x43
- 0x41
-
-julia> String(SeqFold.complement(b"ACGT"))
-"TGCA"
-
-julia> s = "ACACTAC"; SeqFold.complement(SeqFold.complement(s)) == s
-true
+julia> SeqFold.complement('C')
+'G': ASCII/Unicode U+0047 (category Lu: Letter, uppercase)
 ```
-
-# Notes
-- The function normalizes all output to uppercase bases.
-- For string inputs, the output is a string; for byte vector inputs, the output is a byte vector.
-- This is specifically designed for DNA sequences (not RNA, which would use U instead of T).
-- The complement of a complement returns the original sequence (except for non-standard bases which become '.').
 """
 function complement(seq::AbstractString)
-    out_bytes = complement(codeunits(seq))
+    cu = codeunits(seq)
+    if length(cu) != length(seq)
+        throw(ErrorException("Some characters in $seq occupy >1 codeunits. ASCII characters only!"))
+    end
+    out_bytes = _complement_bytes(cu)
+    return String(out_bytes)
+end
+
+
+@inline function _revcomp_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8})
+    n = length(seq)
+    @inbounds @simd for i in 1:n
+        out[i] = DNA_COMP_TABLE[ seq[n - i + 1] + 0x01 ]
+    end
+    return out
+end
+
+function revcomp(nucleotide::AbstractChar)
+    complement(nucleotide)
+end
+
+
+function _revcomp_bytes(seq::AbstractVector{UInt8})
+    out = Vector{UInt8}(undef, length(seq))
+    return _revcomp_bytes!(out, seq)
+end
+
+
+"""
+    SeqFold.revcomp(::AbstractString) -> String
+    SeqFold.revcomp(::AbstractChar) -> Char
+
+Compute the Watson-Crick all uppercase reverse complement of a DNA sequence.
+Non-standard bases (anything other than `'A'`, `'T'`, `'C'`, `'G'`)
+are converted to `'N'`.
+
+# Examples
+```jldoctest
+julia> SeqFold.revcomp("ACGT")
+"ACGT"
+
+julia> SeqFold.revcomp("ACGTacgt")
+"ACGTACGT"
+
+julia> SeqFold.revcomp("ACGTN")
+"NACGT"
+
+julia> SeqFold.revcomp("XYZ")
+"NNN"
+
+julia> SeqFold.revcomp('C')
+'G': ASCII/Unicode U+0047 (category Lu: Letter, uppercase)
+```
+"""
+function revcomp(seq::AbstractString)
+    cu = codeunits(seq)
+    if length(cu) != length(seq)
+        throw(ErrorException("Some characters in $seq occupy >1 codeunits. ASCII characters only!"))
+    end
+    out_bytes = _revcomp_bytes(cu)
     return String(out_bytes)
 end
