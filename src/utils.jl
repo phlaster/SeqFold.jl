@@ -59,25 +59,25 @@ _comp_dna(b::UInt8)::UInt8 =
 
 const DNA_COMP_TABLE = collect(ntuple(i->_comp_dna(UInt8(i-1)), Val(256)))
 
-@inline function _complement_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8})
+@inline function _complement_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8}, table)
     n = length(seq)
     @inbounds @simd for i in 1:n
-        out[i] = DNA_COMP_TABLE[ seq[i] + 0x01 ]
+        out[i] = table[ seq[i] + 0x01 ]
     end
     return out
 end
 
-function _complement_bytes(nucleotide::UInt8)
-    DNA_COMP_TABLE[nucleotide + 0x01]
+function _complement_bytes(nucleotide::UInt8, table)
+    table[nucleotide + 0x01]
 end 
 
-function _complement_bytes(seq::AbstractVector{UInt8})
+function _complement_bytes(seq::AbstractVector{UInt8}, table)
     out = Vector{UInt8}(undef, length(seq))
-    return _complement_bytes!(out, seq)
+    return _complement_bytes!(out, seq, table)
 end
 
-function complement(nucleotide::AbstractChar)
-    Char(_complement_bytes(UInt8(nucleotide)))
+function complement(nucleotide::AbstractChar; table=DNA_COMP_TABLE)
+    Char(_complement_bytes(UInt8(nucleotide), table))
 end
 
 
@@ -107,32 +107,32 @@ julia> SeqFold.complement('C')
 'G': ASCII/Unicode U+0047 (category Lu: Letter, uppercase)
 ```
 """
-function complement(seq::AbstractString)
+function complement(seq::AbstractString; table=DNA_COMP_TABLE)
     cu = codeunits(seq)
     if length(cu) != length(seq)
         throw(ErrorException("Some characters in $seq occupy >1 codeunits. ASCII characters only!"))
     end
-    out_bytes = _complement_bytes(cu)
+    out_bytes = _complement_bytes(cu, table)
     return String(out_bytes)
 end
 
 
-@inline function _revcomp_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8})
+@inline function _revcomp_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8}, table)
     n = length(seq)
     @inbounds @simd for i in 1:n
-        out[i] = DNA_COMP_TABLE[ seq[n - i + 1] + 0x01 ]
+        out[i] = table[ seq[n - i + 1] + 0x01 ]
     end
     return out
 end
 
-function revcomp(nucleotide::AbstractChar)
-    complement(nucleotide)
+function revcomp(nucleotide::AbstractChar; table=DNA_COMP_TABLE)
+    complement(nucleotide; table=table)
 end
 
 
-function _revcomp_bytes(seq::AbstractVector{UInt8})
+function _revcomp_bytes(seq::AbstractVector{UInt8}, table)
     out = Vector{UInt8}(undef, length(seq))
-    return _revcomp_bytes!(out, seq)
+    return _revcomp_bytes!(out, seq, table)
 end
 
 
@@ -162,11 +162,11 @@ julia> SeqFold.revcomp('C')
 'G': ASCII/Unicode U+0047 (category Lu: Letter, uppercase)
 ```
 """
-function revcomp(seq::AbstractString)
+function revcomp(seq::AbstractString; table=DNA_COMP_TABLE)
     cu = codeunits(seq)
     if length(cu) != length(seq)
         throw(ErrorException("Some characters in $seq occupy >1 codeunits. ASCII characters only!"))
     end
-    out_bytes = _revcomp_bytes(cu)
+    out_bytes = _revcomp_bytes(cu, table)
     return String(out_bytes)
 end
