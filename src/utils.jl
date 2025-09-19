@@ -181,7 +181,9 @@ end
 """
     SeqFold.gc_content(::AbstractString) -> Float64
 
-Compute the GC-content of a DNA(/RNA) sequence. Does not validate character correctness.
+Compute the GC-content of a DNA(/RNA) sequence.
+Does not validate character correctness.
+For emplty sequence returns `NaN`.
 
 # Examples
 ```jldoctest
@@ -193,12 +195,19 @@ julia> SeqFold.gc_content("GGC")
 
 julia> SeqFold.gc_content("ABCD")
 0.25
+
+julia> gc_content("")
+NaN
 ```
 
 # See also
 [`SeqFold.gc_cache`](@ref)
 """
 function gc_content(seq::AbstractString)
+    if isempty(seq)
+        return NaN
+    end
+
     counter = 0
     @simd for c in seq
         if c in "GCgc"
