@@ -3,6 +3,7 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://phlaster.github.io/SeqFold.jl/dev/)
 [![Build Status](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/phlaster/SeqFold.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![codecov](https://codecov.io/gh/phlaster/SeqFold.jl/graph/badge.svg?token=TYO912E867)](https://codecov.io/gh/phlaster/SeqFold.jl)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 
