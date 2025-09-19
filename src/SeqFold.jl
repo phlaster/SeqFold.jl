@@ -13,7 +13,10 @@ SeqFold
 
 export tm, MeltingConditions
 export dg, fold, dot_bracket
-public complement, Structure, tm_cache, gc_cache, dg_cache
+
+public Structure
+public complement, revcomp, gc_content
+public tm_cache, gc_cache, dg_cache
 
 using Printf
 

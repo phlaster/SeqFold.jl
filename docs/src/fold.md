@@ -47,12 +47,15 @@ julia> dg(seq, temp=4) # this method calls the computationally intensive `fold` 
 -16.2
 ```
 
-## Public API
-
+## Exported names
 ```@docs
 fold
-SeqFold.Structure
 dot_bracket
 dg
+```
+
+## Public names
+```@docs
+SeqFold.Structure
 SeqFold.dg_cache
 ```

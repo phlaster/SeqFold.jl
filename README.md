@@ -20,9 +20,9 @@ Secondary structure prediction is essential for:
 
 `SeqFold.jl` provides a minimalist open-source alternative to proprietary solutions [with on-demand access](https://vfold.missouri.edu/software.html). The package has [well-documented API](https://phlaster.github.io/SeqFold.jl/stable/) and lightweight architecture with no 3rd party dependencies.
 
-Apart from sequence folding utilities several functions for $T_m$ calculation are provided with fine-grained ionic conditions control.
+For $T_m$ calculation the package provides fine-grained ionic conditions control.
 
-[Julia programming language](https://julialang.org/) is well-known for its speed and this package outperforms both the [original Python package](https://github.com/Lattice-Automation/seqfold) and Biopython `Tm_NN` reference, with little to no difference in results to the latter:
+[Julia programming language](https://julialang.org/) is well-known for its speed and this package outperforms both the [original Python package](https://github.com/Lattice-Automation/seqfold) and Biopython `Tm_NN` reference function:
 ![seqfold vs SeqFold.jl](docs/src/assets/benchmark.png)
 
 

@@ -46,10 +46,13 @@ julia> tm(seq, conditions=custom_conds, Tris=50) # flexible adjustments
 68.4
 ```
 
-## Public API
-
+## Exported names
 ```@docs
 tm
 MeltingConditions
+```
+
+## Public names
+```@docs
 SeqFold.tm_cache
 ```

@@ -20,7 +20,7 @@ makedocs(;
         "Sequence Folding" => "fold.md",
         "Other Functions" => "utils.md",
         "For Python users" => "juliacall.md",
-        "Sources and Links" => "links.md"
+        "Citations" => "citations.md"
     ],
 )
 

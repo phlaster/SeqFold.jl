@@ -43,7 +43,7 @@ mutable struct Energies
 end
 
 """
-    Structure(e, desc, ij)
+    SeqFold.Structure(e, desc, ij)
 
 Represents a structural element within a predicted nucleic acid secondary structure.
 

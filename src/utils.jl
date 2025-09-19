@@ -106,6 +106,9 @@ julia> SeqFold.complement("XYZ")
 julia> SeqFold.complement('C')
 'G': ASCII/Unicode U+0047 (category Lu: Letter, uppercase)
 ```
+
+# See also
+[`SeqFold.revcomp`](@ref)
 """
 function complement(seq::AbstractString; table=DNA_COMP_TABLE)
     cu = codeunits(seq)
@@ -161,6 +164,9 @@ julia> SeqFold.revcomp("XYZ")
 julia> SeqFold.revcomp('C')
 'G': ASCII/Unicode U+0047 (category Lu: Letter, uppercase)
 ```
+
+# See also
+[`SeqFold.complement`](@ref)
 """
 function revcomp(seq::AbstractString; table=DNA_COMP_TABLE)
     cu = codeunits(seq)
@@ -169,4 +175,35 @@ function revcomp(seq::AbstractString; table=DNA_COMP_TABLE)
     end
     out_bytes = _revcomp_bytes(cu, table)
     return String(out_bytes)
+end
+
+
+"""
+    SeqFold.gc_content(::AbstractString) -> Float64
+
+Compute the GC-content of a DNA(/RNA) sequence. Does not validate character correctness.
+
+# Examples
+```jldoctest
+julia> SeqFold.gc_content("ACGT")
+0.5
+
+julia> SeqFold.gc_content("GGC")
+1.0
+
+julia> SeqFold.gc_content("ABCD")
+0.25
+```
+
+# See also
+[`SeqFold.gc_cache`](@ref)
+"""
+function gc_content(seq::AbstractString)
+    counter = 0
+    @simd for c in seq
+        if c in "GCgc"
+            counter += 1
+        end
+    end
+    return counter / length(seq)
 end
