@@ -196,7 +196,7 @@ julia> SeqFold.gc_content("GGC")
 julia> SeqFold.gc_content("ABCD")
 0.25
 
-julia> gc_content("")
+julia> SeqFold.gc_content("")
 NaN
 ```
 
