@@ -71,23 +71,6 @@ end
         end
     end
 
-    @testset "Complement" begin
-
-        seq1 = "AAGGTTCC"
-        seq1c = "TTCCAAGG"
-        @test SeqFold.complement(seq1) == seq1c
-
-        for _ in 1:100
-            n = rand(5:55)
-            seq = _randna(n)
-            @test length(SeqFold.complement(seq)) == n
-            @test seq == SeqFold.complement(SeqFold.complement(seq))
-        end
-
-        bad_nucl_compl = SeqFold.complement("some bad nucleotides")
-        @test issubset(Set(bad_nucl_compl), Set("AGTC."))
-    end
-
     @testset "tm" begin
         @testset "Throws" begin
             @test_throws MethodError tm()
@@ -387,5 +370,60 @@ end
             str = SeqFold._w!(seq, i, j, temp, v_cache, w_cache, SeqFold.RNA_ENERGIES)
             @test isapprox(str.e, expected_e, atol=0.2)
         end
+    end
+end
+
+@testset "utils.jl" begin
+    @testset "complement" begin
+        @test isempty(SeqFold.complement(""))
+
+        seq1 = "AaGgtTCCc"
+        seq1c = "TTCCAAGGG"
+        @test SeqFold.complement(seq1) == seq1c
+
+        for _ in 1:20
+            n = rand(1:55)
+            seq = _randna(n)
+            @test length(SeqFold.complement(seq)) == n
+            @test seq == SeqFold.complement(SeqFold.complement(seq))
+        end
+
+        bad_nucl_compl = SeqFold.complement("some bad nucleotides")
+        @test issubset(bad_nucl_compl, "AGTCN")
+    end
+
+    @testset "revcomp" begin
+        @test isempty(SeqFold.revcomp(""))
+
+        seq1 = "AaGgtTCCc"
+        seq1rc = "GGGAACCTT"
+        @test SeqFold.revcomp(seq1) == seq1rc
+
+        for _ in 1:20
+            n = rand(1:55)
+            seq = _randna(n)
+            @test length(SeqFold.revcomp(seq)) == n
+            @test seq == SeqFold.revcomp(SeqFold.revcomp(seq))
+        end
+
+        bad_nucl_compl = SeqFold.revcomp("some bad nucleotides")
+        @test issubset(bad_nucl_compl, "AGTCN")
+    end
+
+    @testset "gc_content" begin 
+        @test isnan(SeqFold.gc_content(""))
+
+        for _ in 1:20
+            n = rand(1:55)
+            seq = _randna(n)
+            gc = SeqFold.gc_content(seq)
+            @test 0.0 <= gc <= 1.0
+        end
+
+        @test SeqFold.gc_content("AAAA") == 0.0
+        @test SeqFold.gc_content("AAAg") == 0.25
+        @test SeqFold.gc_content("AACg") == 0.50
+        @test SeqFold.gc_content("Tccg") == 0.75
+        @test SeqFold.gc_content("GCcg") == 1.0
     end
 end
