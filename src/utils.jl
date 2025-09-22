@@ -46,18 +46,21 @@ function _parse_input(seq::AbstractString; is_dna=true)
     return seq, n, NaN, is_dna
 end
 
-_comp_dna(b::UInt8)::UInt8 =
-    b == UInt8('A') ? UInt8('T') :
-    b == UInt8('a') ? UInt8('T') :
-    b == UInt8('T') ? UInt8('A') :
-    b == UInt8('t') ? UInt8('A') :
-    b == UInt8('C') ? UInt8('G') :
-    b == UInt8('c') ? UInt8('G') :
-    b == UInt8('G') ? UInt8('C') :
-    b == UInt8('g') ? UInt8('C') :
-    UInt8('N')
 
-const DNA_COMP_TABLE = collect(ntuple(i->_comp_dna(UInt8(i-1)), Val(256)))
+const DNA_COMP_TABLE = let
+    _comp_dna(b::UInt8)::UInt8 =
+        b == UInt8('A') ? UInt8('T') :
+        b == UInt8('a') ? UInt8('T') :
+        b == UInt8('T') ? UInt8('A') :
+        b == UInt8('t') ? UInt8('A') :
+        b == UInt8('C') ? UInt8('G') :
+        b == UInt8('c') ? UInt8('G') :
+        b == UInt8('G') ? UInt8('C') :
+        b == UInt8('g') ? UInt8('C') :
+        UInt8('N')
+    
+    [_comp_dna(UInt8(i)) for i in 0:255]
+end
 
 @inline function _complement_bytes!(out::Vector{UInt8}, seq::AbstractVector{UInt8}, table)
     n = length(seq)
