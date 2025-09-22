@@ -19,7 +19,7 @@ Secondary structure prediction is essential for:
 - Tuning ribosome binding site (RBS) expression rates;
 - Analyzing potential off-target binding in CRISPR applications.
 
-`SeqFold.jl` provides a minimalist open-source alternative to proprietary solutions [with on-demand access](https://vfold.missouri.edu/software.html). The package has [well-documented API](https://phlaster.github.io/SeqFold.jl/stable/) and lightweight architecture with no 3rd party dependencies.
+`SeqFold.jl` provides a minimalist open-source alternative to proprietary solutions [with on-demand access](https://vfold.missouri.edu/software.html). The package has [well-documented API](https://phlaster.github.io/SeqFold.jl/stable/) and no dependencies other than standard Julia library.
 
 For $T_m$ calculation the package provides fine-grained ionic conditions control.
 
@@ -142,7 +142,7 @@ In Python REPL:
 Python 3.13.7 | packaged by conda-forge | (main, Sep  3 2025, 14:30:35) [GCC 14.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> from juliacall import Main as jl # this will download Julia binaries
->>> jl.seval("""using Pkg; Pkg.add(url="https://github.com/phlaster/SeqFold.jl")""")
+>>> jl.seval("""using Pkg; Pkg.add("SeqFold")""")
 >>> jl.seval("using SeqFold") # this exports tm, fold, dg, ...
 >>> jl.fold("ACACGCAGCGGGTGTGGCTGTGGTGC")
 Julia:
